@@ -9,6 +9,7 @@ describe('Dijkstra', () => {
       it('horizontal', () => {
         const expected = [[0, 1], [0, 2], [0, 3], [0, 4], [0, 5]] as WorldPosition[]
         const actual = dijkstra.shortestPath(pos(0, 0), pos(0, 5))
+        console.log("actual was " + actual)
         expect(pathEq(actual, expected)).toBe(true)
       })
 
@@ -19,7 +20,7 @@ describe('Dijkstra', () => {
       })
 
       // sure this changes when diagonals are available :)
-      xit('diagonal', () => {
+      it('diagonal', () => {
         const expected = [[0, 1], [1, 1], [1, 2], [2, 2], [2, 3], [3,3]] as WorldPosition[]
         const actual = dijkstra.shortestPath(pos(0,0), pos(3,3))
         console.log("actual diag", actual)

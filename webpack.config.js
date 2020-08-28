@@ -6,7 +6,7 @@ const webpackMerge = require("webpack-merge");
 
 const modeConfig = env => require(`./build-utils/webpack.${env}`)(env);
 
-module.exports = ({ mode, presets } = { mode: "development", presets: [] }) => {
+module.exports = ({ mode, presets } = { mode: "production", presets: [] }) => {
   return webpackMerge(
     {
       entry: "./src/index.ts",

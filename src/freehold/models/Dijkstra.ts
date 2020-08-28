@@ -1,5 +1,6 @@
 import { WorldPosition } from "../types";
-import { pos, neighborsOfPosition, posEq } from "./WorldPosition";
+import { pos, neighborsOfPosition, posEq, neighborsOfPositionPlusDiagonals } from "./WorldPosition";
+import { PositionSet } from "./PositionSet";
 
 class SimpleGrid<T> {
   values: T[][] = []
@@ -21,20 +22,6 @@ class SimpleGrid<T> {
   }
 }
 
-class PositionSet {
-  private arr: WorldPosition[] = []
-  constructor(entries: WorldPosition[]) {
-    entries.forEach(([x,y]) => this.arr.push(pos(x,y)))
-  }
-  get array() { return this.arr; }
-  delete(position: WorldPosition) {
-    this.arr = this.arr.filter(anotherPosition => !posEq(position, anotherPosition))
-  }
-  has(position: WorldPosition) {
-    return this.arr.filter(p => posEq(p, position)).length > 0
-  }
-}
-
 export class Dijkstra {
   allPositions: WorldPosition[] = []
   constructor(private dims: [number, number], private isBlocked: (position: WorldPosition) => boolean) {
@@ -49,7 +36,6 @@ export class Dijkstra {
   get height(): number { return this.dims[1]; }
 
   shortestPath(source: WorldPosition, destination: WorldPosition): WorldPosition[] {
-    // console.log("---> Find shortest path from " + source + " to " + destination)
     const unvisitedNodes = new PositionSet(this.allPositions);
     const prev = new SimpleGrid<WorldPosition>()
     const dist = new SimpleGrid<number>(Infinity)
@@ -59,13 +45,13 @@ export class Dijkstra {
       return da > db ? 1 : -1
     }
     dist.set(source, 0)
-    while (prev.at(destination) === undefined && unvisitedNodes.array.length > 0) {
+    while (prev.at(destination) === undefined && unvisitedNodes.size() > 0) {
       const sortedUnvisitedNodes = unvisitedNodes.array.sort(byDistance)
       const closestUnvisited = sortedUnvisitedNodes.shift()
       unvisitedNodes.delete(closestUnvisited)
       if (posEq(closestUnvisited, destination)) { break }
       const alt = dist.at(closestUnvisited) + 1
-      const neighbors = neighborsOfPosition(closestUnvisited, this.dims)
+      const neighbors = neighborsOfPositionPlusDiagonals(closestUnvisited, this.dims)
       neighbors.filter(n => !this.isBlocked(n)).forEach(neighbor => {
         if (unvisitedNodes.has(neighbor)) {
           const neighborDistance = dist.at(neighbor)
@@ -76,8 +62,6 @@ export class Dijkstra {
         }
       })
     }
-
-    // console.log("---> Found path, assemble steps...", prev)
     const path = []
     let current: WorldPosition = destination
     while (!posEq(current, source)) {

@@ -61,6 +61,7 @@ export const posEq = (a: WorldPosition, b: WorldPosition): boolean => {
 }
 
 export const pathEq = (a: WorldPosition[], b: WorldPosition[]): boolean => {
+  // let eq = true
   for (let i = 0; i < a.length; i++) {
     if (!posEq(a[i], b[i])) { return false }
   }

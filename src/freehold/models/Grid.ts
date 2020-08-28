@@ -1,5 +1,4 @@
 import { WorldPosition, Dimensions } from "../types";
-import { pick } from "../util/pick";
 import { pos } from "./WorldPosition";
 
 export class Grid<T> {

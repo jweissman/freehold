@@ -1,4 +1,4 @@
-import { Scene, Vector, Actor, Color } from "excalibur";
+import { Scene, Vector, Actor, Color, Input } from "excalibur";
 import { Game } from "./models/Game";
 import { World } from "./models/World";
 import { Dimensions, WorldPosition } from "./types";
@@ -8,22 +8,25 @@ import { pos } from "./models/WorldPosition";
 import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
 
+type Action = 'cut' | 'build'
 export class Play extends Scene {
   game: Game
   cursor: SingleCellBox
   cursorWorldPos: WorldPosition = pos(-1,-1)
   drag?: Drag
   dragEnvelope: Actor
+  currentAction: Action = 'cut'
 
   onInitialize(engine: FreeholdEngine): void {
     console.log("Play.onInitialize")
 
-    const world = new World([40,40] as Dimensions);
+    const world = new World([50,40] as Dimensions);
     this.game = new Game(world)
     this.game.setup()
 
     this.add(this.game.terrain)
     this.add(this.game.vegetation)
+    this.add(this.game.rawMaterials)
     this.add(this.game.sigils)
 
     engine.input.pointers.primary.on('move', (e) => this.updateCursorPosition(e.pos))
@@ -49,18 +52,26 @@ export class Play extends Scene {
   }
 
   onPreUpdate(engine: FreeholdEngine): void {
-    if (this.game) {
-      this.game.update()
-    }
+    if (this.game) { this.game.update() }
+
+    // const keys = engine.input.keyboard
+    // if (keys.isHeld(Input.Keys.B)) {
+    //   console.log('build')
+    // } else if (keys.isHeld(Input.Keys.C)) {
+    //   console.log('cut')
+    // }
+
     const mouse = engine.input.pointers.primary
     if (mouse.isDragStart) {
       this.drag = new Drag(this.cursorWorldPos)
     } else if (mouse.isDragEnd) {
       const [originX,originY] = this.drag.minima
       const [destX,destY] = this.drag.maxima
-      for (let x = originX; x < destX; x++) {
-        for (let y = originY; y < destY; y++) {
-          this.game.markTree(pos(x,y))
+      if (this.currentAction === 'cut') {
+        for (let x = originX; x < destX; x++) {
+          for (let y = originY; y < destY; y++) {
+            this.game.markTree(pos(x, y))
+          }
         }
       }
       this.dragEnvelope.visible = false
