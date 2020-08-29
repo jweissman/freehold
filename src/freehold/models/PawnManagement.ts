@@ -58,7 +58,7 @@ export class PawnManagement {
         this.pawnTokenMoves(token, nextStep);
       }
       else {
-        console.log("---> Compute path from " + token.pawn.pos + " to " + token.pawn.dest);
+        // console.log("---> Compute path from " + token.pawn.pos + " to " + token.pawn.dest);
         token.path = this.game.computePath(token.pawn.pos, token.pawn.dest);
       }
     }

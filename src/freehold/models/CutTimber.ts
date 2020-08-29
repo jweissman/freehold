@@ -22,10 +22,11 @@ export class CutTimber implements IActivityManager {
   findJob(token: PawnToken): JobDetail {
     const treePositions = [...this.game.markedTreePositions]
       .filter(pos => !this.assignedTreePositions.has(pos))
-      // .filter(pos => this.game.computePath(pos, token.pawn.pos).length > 0)
-      .sort(byDistanceFrom(token.pawn.pos));
-    const treePosition = treePositions.pop(); //pick(...this.markedTreePositions)
+      .sort(byDistanceFrom(token.pawn.pos))
+
+    const treePosition = treePositions.pop();
     const accessible = this.game.computePath(treePosition, token.pawn.pos).length > 0
+    
     if (treePosition && accessible) {
       this.assignedTreePositions.add(treePosition);
       const neighbors = neighborsOfPosition(treePosition, this.game.dims)
@@ -37,7 +38,7 @@ export class CutTimber implements IActivityManager {
   }
 
   async perform(token: PawnToken): Promise<void> {
-    console.log("---> " + token.pawn.name + " is felling timber!");
+    // console.log("---> " + token.pawn.name + " is felling timber!");
     // token.interacting = true;
     await token.actions.delay(250).asPromise();
     this.game.chopTree(token.pawn.activityTarget);

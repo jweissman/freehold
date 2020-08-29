@@ -55,13 +55,18 @@ export const neighborsOfPositionPlusDiagonals = (src: WorldPosition, dims: [numb
 }
 
 export const posEq = (a: WorldPosition, b: WorldPosition): boolean => {
+  if (a && b) {
   const [ax,ay] = a
   const [bx,by] = b
   return ax === bx && ay === by
+  } else { return false}
 }
 
 export const pathEq = (a: WorldPosition[], b: WorldPosition[]): boolean => {
-  // let eq = true
+  // console.log("---> Compare paths...")
+  // console.log("=> Path A: " + a)
+  // console.log("=> Path B: " + b)
+  if (!(a.length === b.length)) { return false }
   for (let i = 0; i < a.length; i++) {
     if (!posEq(a[i], b[i])) { return false }
   }

@@ -1,34 +1,31 @@
 import { Cartogram } from "../models/Cartogram";
 import { Pawn, Dimensions, Terrain, Vegetation, WorldPosition, Sigil, Material } from "../types";
 import { Grid } from "./Grid";
-import { Dijkstra } from "./Dijkstra";
-import { SpriteSheet } from "excalibur";
+import { Navigator } from "./Navigator";
 
 export class World {
-  // rawMaterials(arg0: string, Matter: SpriteSheet, rawMaterials: any, rawMaterialsImageMap: { nothing: any[]; wood: number[]; }): import("excalibur").TileMap {
-    // throw new Error("Method not implemented.");
-  // }
   public pawns: Pawn[]
   private map: Cartogram
-  private dijkstra: Dijkstra
+  private nav: Navigator
   makePawn = (name: string): Pawn => {
     return {
       name,
       pos: this.map.pickClearLocation(),
-      // activity: 'ready',
     }
   }
 
   constructor(public dimensions: Dimensions) {
     this.map = new Cartogram(dimensions);
-    this.dijkstra = new Dijkstra(dimensions, position => {
+    this.nav = new Navigator(dimensions, position => {
       return this.isBlocked(position)
     });
     this.pawns = [
       this.makePawn('Samwell'),
       this.makePawn('Frodi'),
       this.makePawn('Gendelf'),
-      this.makePawn('Argor')
+      this.makePawn('Argor'),
+      this.makePawn('Elendil'),
+      this.makePawn('Bey Wulf'),
     ]
   }
 
@@ -49,7 +46,8 @@ export class World {
   }
 
   shortestPath(src: WorldPosition, dst: WorldPosition): WorldPosition[] {
-    return this.dijkstra.shortestPath(src, dst)
+    const { path } = this.nav.aStar(src, dst)
+    return path
   }
 
   isBlocked(position: WorldPosition): boolean {

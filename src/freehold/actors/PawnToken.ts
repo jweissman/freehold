@@ -2,11 +2,15 @@ import { Actor, Color, Vector } from "excalibur";
 import { CELL_SIZE } from "../constants";
 import { Pawn, WorldPosition } from "../types";
 import { pick } from "../util/pick";
+import { SimpleGrid } from "../models/SimpleGrid";
+import { PositionSet } from "../models/PositionSet";
 
 export class PawnToken extends Actor {
   moving = false;
   interacting = false;
   path: WorldPosition[] = []
+
+  currentlyInaccessible: PositionSet = new PositionSet()
 
   constructor(public pawn: Pawn) {
     super({

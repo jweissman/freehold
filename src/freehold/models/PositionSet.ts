@@ -18,4 +18,7 @@ export class PositionSet {
   size(): number {
     return this.arr.length
   }
+  empty(): boolean {
+    return this.size() === 0
+  }
 }
