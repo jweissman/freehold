@@ -1,4 +1,5 @@
 import { WorldPosition } from "../types";
+// A very basic grid that doesn't worry about bounds or indexing etc
 export class SimpleGrid<T> {
   values: T[][] = [];
   constructor(private valueWhenUndefined: T = undefined) { }

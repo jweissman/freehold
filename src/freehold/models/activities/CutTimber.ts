@@ -1,11 +1,11 @@
-import { PawnToken } from "../actors/PawnToken";
-import { byDistanceFrom, neighborsOfPosition } from "./WorldPosition";
-import { Game } from "./Game";
-import { Activity, JobDetail } from "../types";
-import { PositionSet } from "./PositionSet";
-import { IActivityManager } from "./IActivityManager";
+import { PawnToken } from "../../actors/PawnToken";
+import { byDistanceFrom, neighborsOfPosition } from "../WorldPosition";
+import { Game } from "../Game";
+import { Activity, JobDetail } from "../../types";
+import { PositionSet } from "../PositionSet";
+import { IActivity } from "../IActivity";
 
-export class CutTimber implements IActivityManager {
+export class CutTimber implements IActivity {
   title: Activity = 'logging';
   constructor(private game: Game) { }
 

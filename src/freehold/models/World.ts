@@ -2,6 +2,7 @@ import { Cartogram } from "../models/Cartogram";
 import { Pawn, Dimensions, Terrain, Vegetation, WorldPosition, Sigil, Material } from "../types";
 import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
+import { SimpleGrid } from "./SimpleGrid";
 
 export class World {
   public pawns: Pawn[]
@@ -26,6 +27,9 @@ export class World {
       this.makePawn('Argor'),
       this.makePawn('Elendil'),
       this.makePawn('Bey Wulf'),
+      this.makePawn('Timtam'),
+      this.makePawn('Gimlock'),
+      this.makePawn('Grog'),
     ]
   }
 
@@ -35,7 +39,8 @@ export class World {
   get terrain(): Grid<Terrain> { return this.map.terrain }
   get vegetation(): Grid<Vegetation> { return this.map.vegetation }
   get sigils(): Grid<Sigil> { return this.map.sigils }
-  get rawMaterials(): Grid<Material> { return this.map.rawMaterials } 
+  get rawMaterial(): Grid<Material> { return this.map.rawMaterial } 
+  get rawMaterialCount(): SimpleGrid<number> { return this.map.rawMaterialCount } 
 
   forEachPosition(fn: (x: number, y: number) => void): void {
     for (let y = 0; y < this.height; y++) {

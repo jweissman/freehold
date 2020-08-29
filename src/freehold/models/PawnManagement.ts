@@ -3,11 +3,11 @@ import { posEq } from "./WorldPosition";
 import { Game } from "./Game";
 import { WorldPosition } from "../types";
 import { CELL_SIZE } from "../constants";
-import { IActivityManager } from "./IActivityManager";
-import { CutTimber } from "./CutTimber";
+import { IActivity as IActivity } from "./IActivity";
+import { CutTimber } from "./activities/CutTimber";
 
 export class PawnManagement {
-  activities: IActivityManager[]
+  activities: IActivity[]
   constructor(private game: Game) {
     this.activities = [
       new CutTimber(this.game)
@@ -68,7 +68,8 @@ export class PawnManagement {
     if (!token.moving) {
       token.moving = true
       await token.actions.moveTo(
-        target[0] * CELL_SIZE, target[1] * CELL_SIZE, 100
+        target[0] * CELL_SIZE, target[1] * CELL_SIZE,
+        PawnToken.speed
       ).asPromise()
       token.pawn.pos = target
       token.moving = false

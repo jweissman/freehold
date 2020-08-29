@@ -1,5 +1,5 @@
 import { WorldPosition } from "../types";
-import { neighborsOfPosition, posEq, distanceBetween, neighborsOfPositionPlusDiagonals } from "./WorldPosition";
+import { posEq, distanceBetween, neighborsOfPositionPlusDiagonals } from "./WorldPosition";
 import { PositionSet } from "./PositionSet";
 import { SimpleGrid } from "./SimpleGrid";
 

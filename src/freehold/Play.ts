@@ -1,4 +1,4 @@
-import { Scene, Vector, Actor, Color, Input } from "excalibur";
+import { Scene, Vector, Actor, Color, Input, Label } from "excalibur";
 import { Game } from "./models/Game";
 import { World } from "./models/World";
 import { Dimensions, WorldPosition } from "./types";
@@ -8,7 +8,27 @@ import { pos } from "./models/WorldPosition";
 import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
 
-type Action = 'cut' | 'build'
+class ZoneView extends Actor {
+  constructor(private game: Game) {
+    super({ pos: new Vector(0,0) })
+  }
+  draw(ctx: CanvasRenderingContext2D) {
+    this.game.zones.forEach(zone => {
+      const [x0,y0] = zone.topLeft
+      const [x1,y1] = zone.bottomRight
+
+      const x = x0 * CELL_SIZE
+      const y = y0 * CELL_SIZE
+      const w = (x1 - x0) * CELL_SIZE
+      const h = (y1 - y0) * CELL_SIZE
+
+      ctx.fillStyle = zone.color.toRGBA()
+      ctx.fillRect(x,y,w,h)
+    })
+  }
+}
+
+type Action = 'cut' | 'build' | 'zone'
 export class Play extends Scene {
   game: Game
   cursor: SingleCellBox
@@ -17,6 +37,9 @@ export class Play extends Scene {
   dragEnvelope: Actor
   currentAction: Action = 'cut'
 
+  label: Label
+  regionView: ZoneView
+
   onInitialize(engine: FreeholdEngine): void {
     console.log("Play.onInitialize")
 
@@ -24,10 +47,18 @@ export class Play extends Scene {
     this.game = new Game(world)
     this.game.setup()
 
+
     this.add(this.game.terrain)
     this.add(this.game.vegetation)
     this.add(this.game.rawMaterials)
     this.add(this.game.sigils)
+
+    this.label = new Label("...", 20, 20)
+    this.add(this.label)
+    this.setAction('cut')
+
+    this.regionView = new ZoneView(this.game)
+    this.add(this.regionView)
 
     engine.input.pointers.primary.on('move', (e) => this.updateCursorPosition(e.pos))
     this.cursor = new SingleCellBox()
@@ -38,6 +69,13 @@ export class Play extends Scene {
 
     this.game.pawnTokens.forEach(pawnToken => this.add(pawnToken))
   }
+
+  setAction(action: Action): void {
+    this.label.text = "action: " + action
+    this.currentAction = action
+  }
+
+  // actOnRegion(region: Region): void {}
 
   updateCursorPosition(position: Vector): void {
     this.cursorWorldPos = pos(
@@ -54,14 +92,17 @@ export class Play extends Scene {
   onPreUpdate(engine: FreeholdEngine): void {
     if (this.game) { this.game.update() }
 
-    // const keys = engine.input.keyboard
-    // if (keys.isHeld(Input.Keys.B)) {
-    //   console.log('build')
-    // } else if (keys.isHeld(Input.Keys.C)) {
-    //   console.log('cut')
-    // }
+    const keys = engine.input.keyboard
+    if (keys.isHeld(Input.Keys.B)) {
+      this.setAction('build')
+    } else if (keys.isHeld(Input.Keys.C)) {
+      this.setAction('cut')
+    } else if (keys.isHeld(Input.Keys.Z)) {
+      this.setAction('zone')
+    }
 
     const mouse = engine.input.pointers.primary
+    // if (mouse.)
     if (mouse.isDragStart) {
       this.drag = new Drag(this.cursorWorldPos)
     } else if (mouse.isDragEnd) {
@@ -73,6 +114,8 @@ export class Play extends Scene {
             this.game.markTree(pos(x, y))
           }
         }
+      } else if (this.currentAction === 'zone') {
+        this.game.createZone(pos(originX,originY), pos(destX,destY))
       }
       this.dragEnvelope.visible = false
     } else if (mouse.isDragging) {

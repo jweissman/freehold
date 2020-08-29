@@ -2,23 +2,29 @@ import { Terrain, WorldPosition, Dimensions, Vegetation, Sigil, Material } from 
 import { Grid } from "./Grid";
 import { pos } from "./WorldPosition";
 import { pick } from "../util/pick";
+import { SimpleGrid } from "./SimpleGrid";
 
+// type Matter = { kind: Material, amount: number }
 export class Cartogram {
   terrain: Grid<Terrain>
   vegetation: Grid<Vegetation>
-  rawMaterials: Grid<Material>
+
+  rawMaterial: Grid<Material>
+  rawMaterialCount: SimpleGrid<number>
+  
   sigils: Grid<Sigil>
 
   constructor(private dims: Dimensions) {
     this.terrain = new Grid<Terrain>(dims, ['land', 'water'])
     this.vegetation = new Grid<Vegetation>(dims, ['nothing', 'grass', 'flower', 'tree'])
-    this.rawMaterials = new Grid<Material>(dims, [ 'nothing', 'wood' ])
+    this.rawMaterial = new Grid<Material>(dims, [ 'nothing', 'wood' ])
+    this.rawMaterialCount = new SimpleGrid<number>(0)
     this.sigils = new Grid<Sigil>(dims, ['nothing', 'axe'])
 
     this.terrain.fill('land')
     this.vegetation.fill('nothing')
     this.vegetation.distributeRandomly('tree', 0.4)
-    this.rawMaterials.fill('nothing')
+    this.rawMaterial.fill('nothing')
     this.sigils.fill('nothing')
   }
 

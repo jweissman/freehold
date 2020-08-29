@@ -6,7 +6,7 @@ export type Direction = 'north' | 'south' | 'east' | 'west'
 export type WorldPosition = [number, number] & { unit: 'world position' }
 
 
-export type Activity = 'logging'
+export type Activity = 'logging' | 'hauling'
 export type Pawn = { name: string, pos: WorldPosition, dest?: WorldPosition, activity?: Activity, activityTarget?: WorldPosition } 
 
 export type Terrain  = 'land' | 'water'

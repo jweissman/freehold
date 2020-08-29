@@ -1,6 +1,6 @@
 import { World } from "./World";
-import { TileMap, SpriteSheet, TileSprite } from "excalibur";
-import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_IMAGES } from "../constants";
+import { TileMap, SpriteSheet, TileSprite, Color } from "excalibur";
+import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES } from "../constants";
 import { Grid } from "./Grid";
 import { WorldPosition, Dimensions } from "../types";
 import { pick } from "../util/pick";
@@ -9,15 +9,16 @@ import { SpriteSheets } from "../Resources";
 import { pos, posEq } from "./WorldPosition";
 import { PawnManagement } from "./PawnManagement";
 
+type Region = { topLeft: WorldPosition, bottomRight: WorldPosition, color: Color }
+
 export class Game {
   terrain: TileMap
   vegetation: TileMap
   rawMaterials: TileMap
   sigils: TileMap
-
+  zones: Region[] = []
   pawnTokens: PawnToken[]
   markedTreePositions: WorldPosition[] = []
-
   pawnManager: PawnManagement = new PawnManagement(this);
   ticks = 0;
 
@@ -41,10 +42,10 @@ export class Game {
       vegetationImageMap
     )
 
-    const rawMaterialsImageMap = { 'nothing': [], 'wood': WOOD_IMAGES }
+    const rawMaterialsImageMap = { 'nothing': [], 'wood_piece': WOOD_PIECE_IMAGES }
     this.rawMaterials = this.assembleTiles(
       'matter', SpriteSheets.Matter,
-      this.world.rawMaterials,
+      this.world.rawMaterial,
       rawMaterialsImageMap
     )
 
@@ -66,6 +67,10 @@ export class Game {
   }
 
   get dims(): Dimensions { return this.world.dimensions }
+
+  rawMaterialLocations(): WorldPosition[] {
+    return []
+  }
 
   isBlocked(position: WorldPosition): boolean {
     return this.world.isBlocked(position)
@@ -94,8 +99,20 @@ export class Game {
 
     this.markedTreePositions = this.markedTreePositions.filter(treePos => !posEq(treePos, position))
 
-    this.rawMaterials.getCell(ax,ay).pushSprite(new TileSprite('matter', pick(...WOOD_IMAGES)))
-    this.world.rawMaterials.set(position, 'wood')
+    this.world.rawMaterial.set(position, 'wood')
+    this.world.rawMaterialCount.set(position, pick(1,2,3))
+    this.rawMaterials.getCell(ax,ay).pushSprite(
+      new TileSprite('matter', pick(...WOOD_PIECE_IMAGES)))
+    
+  }
+
+  createZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
+    this.zones.push({
+      topLeft,
+      bottomRight,
+      color: new Color(pick(60,90,120), pick(60,90,120), pick(60,90,120), 0.2)
+    })
+    // throw new Error("Method not implemented.");
   }
 
   private inBounds(pos: WorldPosition): boolean {
