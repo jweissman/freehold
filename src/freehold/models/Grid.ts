@@ -28,7 +28,7 @@ export class Grid<T> {
     this.cells[y][x] = this.reference(value);
   }
 
-  forEachPosition(fn: (x: number, y: number) => void): void {
+  forEachPositionXY(fn: (x: number, y: number) => void): void {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         fn(x,y)
@@ -36,15 +36,33 @@ export class Grid<T> {
     }
   }
 
+  forEachPosition(fn: (position: WorldPosition) => void): void {
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        fn(pos(x,y))
+      }
+    }
+  }
+
   fill(value: T): void {
-    this.forEachPosition((x, y) => this.set(pos(x,y),value))
+    this.forEachPosition(position => this.set(position,value))
   }
 
   distributeRandomly(value: T, rate = 0.1): void {
-    this.forEachPosition((x, y) => {
+    this.forEachPosition(position => {
       if (Math.random() < rate) {
-        this.set(pos(x, y), value)
+        this.set(position, value)
       }
     })
+  }
+
+  occupiedLocations(value: T): WorldPosition[] {
+    const occupied = []
+    this.forEachPosition(position => {
+      if (this.at(position) === value) {
+        occupied.push(position)
+      }
+    })
+    return occupied
   }
 }

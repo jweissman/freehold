@@ -2,11 +2,11 @@ import { World } from "./World";
 import { TileMap, SpriteSheet, TileSprite, Color } from "excalibur";
 import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES } from "../constants";
 import { Grid } from "./Grid";
-import { WorldPosition, Dimensions } from "../types";
+import { WorldPosition, Dimensions, Material } from "../types";
 import { pick } from "../util/pick";
 import { PawnToken } from "../actors/PawnToken";
 import { SpriteSheets } from "../Resources";
-import { pos, posEq } from "./WorldPosition";
+import { pos, posEq, areaContains } from "./WorldPosition";
 import { PawnManagement } from "./PawnManagement";
 
 type Region = { topLeft: WorldPosition, bottomRight: WorldPosition, color: Color }
@@ -68,13 +68,16 @@ export class Game {
 
   get dims(): Dimensions { return this.world.dimensions }
 
-  rawMaterialLocations(): WorldPosition[] {
-    return []
+  rawMaterialLocations(kind: Material): WorldPosition[] {
+    return this.world.rawMaterial.occupiedLocations(kind)
+    // return []
   }
 
   isBlocked(position: WorldPosition): boolean {
     return this.world.isBlocked(position)
   }
+
+  
 
   computePath(pos: WorldPosition, dest: WorldPosition): WorldPosition[] {
     return this.world.shortestPath(pos, dest)
@@ -107,17 +110,54 @@ export class Game {
   }
 
   createZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
-    this.zones.push({
-      topLeft,
-      bottomRight,
-      color: new Color(pick(60,90,120), pick(60,90,120), pick(60,90,120), 0.2)
-    })
+    topLeft = this.enforceBounds(topLeft)
+    bottomRight = this.enforceBounds(bottomRight)
+    const color = new Color(pick(60, 90, 120), pick(60, 90, 120), pick(60, 90, 120), 0.2)
+    if (topLeft[0] < bottomRight[0] && topLeft[1] < bottomRight[1]) {
+      console.log("---> Creating zone from " + topLeft + " to " + bottomRight)
+      this.zones.push({
+        topLeft, bottomRight, color
+      })
+    } else {
+      console.log("---> Not creating zone; zone had no size?")
+    }
     // throw new Error("Method not implemented.");
+  }
+
+  isLocationWithinAnyZone(location: WorldPosition): boolean {
+    return Boolean(
+      this.zones.find(zone => {
+        areaContains(zone.topLeft, zone.bottomRight, location)
+      })
+    )
+  }
+
+  areAllZonesFull(): boolean {
+    if (this.zones.length === 0) { return true }
+    for (const zone of this.zones) {
+      for (let y = zone.topLeft[1]; y <= zone.bottomRight[1]; y++) {
+        for (let x = zone.topLeft[0]; x <= zone.bottomRight[0]; x++) {
+          if (this.world.rawMaterialCount.at(pos(x,y)) < 50) {
+            return false
+          }
+        }
+      }
+    }
+    return true
   }
 
   private inBounds(pos: WorldPosition): boolean {
     const [x, y] = pos
     return (x >= 0 && y >= 0 && x < this.world.width && y < this.world.height)
+  }
+
+  private enforceBounds(position: WorldPosition): WorldPosition {
+    let [x, y] = position
+    if (x < 0) { x = 0; }
+    if (x > this.world.width) { x = this.world.width }
+    if (y < 0) { y = 0; }
+    if (y > this.world.height) { y = this.world.height }
+    return pos(x,y)
   }
 
   private assembleTiles<T>(
@@ -142,4 +182,5 @@ export class Game {
     })
     return map
   }
+
 }

@@ -5,12 +5,14 @@ import { WorldPosition } from "../types";
 import { CELL_SIZE } from "../constants";
 import { IActivity as IActivity } from "./IActivity";
 import { CutTimber } from "./activities/CutTimber";
+import { Haul } from "./activities/Haul";
 
 export class PawnManagement {
   activities: IActivity[]
   constructor(private game: Game) {
     this.activities = [
-      new CutTimber(this.game)
+      new CutTimber(this.game),
+      new Haul(this.game),
     ]
   }
 
@@ -29,7 +31,7 @@ export class PawnManagement {
       this.handleNavigation(token)
     } else {
       if (!token.pawn.activity) {
-        if (this.game.ticks % 2 === 0) {
+        // if (this.game.ticks % 2 === 0) {
           for (const activity of this.activities) {
             if (activity.isJobAvailable()) {
               // console.log("---> A job is available: " + activity.title)
@@ -42,7 +44,7 @@ export class PawnManagement {
                 break;
               }
             }
-          }
+          // }
         }
       } else {
         // console.log("---> Pawn " + token.pawn.name + " has an activity...")

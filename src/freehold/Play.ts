@@ -7,26 +7,7 @@ import { FreeholdEngine } from "../FreeholdEngine";
 import { pos } from "./models/WorldPosition";
 import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
-
-class ZoneView extends Actor {
-  constructor(private game: Game) {
-    super({ pos: new Vector(0,0) })
-  }
-  draw(ctx: CanvasRenderingContext2D) {
-    this.game.zones.forEach(zone => {
-      const [x0,y0] = zone.topLeft
-      const [x1,y1] = zone.bottomRight
-
-      const x = x0 * CELL_SIZE
-      const y = y0 * CELL_SIZE
-      const w = (x1 - x0) * CELL_SIZE
-      const h = (y1 - y0) * CELL_SIZE
-
-      ctx.fillStyle = zone.color.toRGBA()
-      ctx.fillRect(x,y,w,h)
-    })
-  }
-}
+import { ZoneView } from "./actors/ZoneView";
 
 type Action = 'cut' | 'build' | 'zone'
 export class Play extends Scene {
@@ -43,10 +24,9 @@ export class Play extends Scene {
   onInitialize(engine: FreeholdEngine): void {
     console.log("Play.onInitialize")
 
-    const world = new World([50,40] as Dimensions);
+    const world = new World([20,25] as Dimensions);
     this.game = new Game(world)
     this.game.setup()
-
 
     this.add(this.game.terrain)
     this.add(this.game.vegetation)
@@ -54,10 +34,11 @@ export class Play extends Scene {
     this.add(this.game.sigils)
 
     this.label = new Label("...", 20, 20)
+    this.label.color = Color.White
     this.add(this.label)
     this.setAction('cut')
 
-    this.regionView = new ZoneView(this.game)
+    this.regionView = new ZoneView(this.game, this.camera)
     this.add(this.regionView)
 
     engine.input.pointers.primary.on('move', (e) => this.updateCursorPosition(e.pos))
@@ -68,6 +49,9 @@ export class Play extends Scene {
     this.add(this.dragEnvelope)
 
     this.game.pawnTokens.forEach(pawnToken => this.add(pawnToken))
+
+    // this.camera.zoom(2.5)
+    this.camera.pos = new Vector(100,100)
   }
 
   setAction(action: Action): void {

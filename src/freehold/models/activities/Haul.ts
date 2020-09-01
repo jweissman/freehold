@@ -1,26 +1,30 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IActivity } from "../IActivity";
 import { PawnToken } from "../../actors/PawnToken";
-import { JobDetail } from "../../types";
+import { JobDetail, Activity } from "../../types";
 import { Game } from "../Game";
 
 export class Haul implements IActivity {
-  title: "hauling";
+  title: Activity = "hauling";
 
   constructor(private game: Game) {}
 
   isJobAvailable(): boolean {
-    // are there outstanding items to haul?
-    this.game.rawMaterialLocations
-
-    // is there space available in a region?
-    return false
+    // console.log("---> Is hauling job available?")
+    // return false
+    const outstandingItems = this.game.rawMaterialLocations('wood').filter(location =>
+      !this.game.isLocationWithinAnyZone(location)
+    )
+    return outstandingItems.length > 0 && !this.game.areAllZonesFull()
   }
 
   findJob(token: PawnToken): JobDetail {
-    throw new Error("Method not implemented.");
+    console.log("would find hauling job for " + token.pawn.name)
+    return undefined
+    // throw new Error("Method not implemented.");
   }
 
-  perform(token: PawnToken): Promise<void> {
+  perform(_token: PawnToken): Promise<void> {
     throw new Error("Method not implemented.");
   }
 

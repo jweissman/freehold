@@ -23,7 +23,7 @@ export class Cartogram {
 
     this.terrain.fill('land')
     this.vegetation.fill('nothing')
-    this.vegetation.distributeRandomly('tree', 0.4)
+    this.vegetation.distributeRandomly('tree', 0.8)
     this.rawMaterial.fill('nothing')
     this.sigils.fill('nothing')
   }

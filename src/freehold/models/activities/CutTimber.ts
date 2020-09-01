@@ -1,5 +1,5 @@
 import { PawnToken } from "../../actors/PawnToken";
-import { byDistanceFrom, neighborsOfPosition } from "../WorldPosition";
+import { byDistanceFrom, neighborsOfPosition, distanceBetween } from "../WorldPosition";
 import { Game } from "../Game";
 import { Activity, JobDetail } from "../../types";
 import { PositionSet } from "../PositionSet";
@@ -20,21 +20,34 @@ export class CutTimber implements IActivity {
   }
 
   findJob(token: PawnToken): JobDetail {
+    // if (this.game.ticks % 50 !== 0) return;
     const treePositions = [...this.game.markedTreePositions]
       .filter(pos => !this.assignedTreePositions.has(pos))
-      .sort(byDistanceFrom(token.pawn.pos))
+      .filter(pos => this.game.computePath(pos, token.pawn.pos).length > 0)
+    
+    if (treePositions.length > 0) {
 
-    const treePosition = treePositions.pop();
-    const accessible = this.game.computePath(treePosition, token.pawn.pos).length > 0
+    const treePosition = //treePositions.pop();
+      treePositions.sort(byDistanceFrom(token.pawn.pos)).pop()
+    const accessible = //distanceBetween(token.pawn.pos, treePosition) == 1 ||
+      this.game.computePath(treePosition, token.pawn.pos).length > 0
+    // console.log("---> Consider tree position ", treePosition, " is accessible ", accessible, " by pawn at ", token.pawn.pos)
     
     if (treePosition && accessible) {
-      this.assignedTreePositions.add(treePosition);
       const neighbors = neighborsOfPosition(treePosition, this.game.dims)
         .filter(neighbor => !this.game.isBlocked(neighbor))
+        .filter(neighbor => distanceBetween(token.pawn.pos, neighbor) == 0 ||
+                            this.game.computePath(neighbor, token.pawn.pos).length > 0)
         .sort(byDistanceFrom(token.pawn.pos));
-      const travelDestination = neighbors.pop();
-      return { activityTarget: treePosition, travelDestination };
+      if (neighbors.length > 0) {
+        this.assignedTreePositions.add(treePosition);
+        const travelDestination = neighbors.pop();
+        return { activityTarget: treePosition, travelDestination };
+      } else {
+        console.log("---> No neighbor found that is accessible + unblocked")
+      }
     }
+  }
   }
 
   async perform(token: PawnToken): Promise<void> {

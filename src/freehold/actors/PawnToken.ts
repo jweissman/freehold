@@ -31,7 +31,7 @@ export class PawnToken extends Actor {
     y += CELL_SIZE/2
     Shapes.ellipse(ctx,
       x, y, // + CELL_SIZE/4,
-      2*CELL_SIZE/8, CELL_SIZE/2,
+      2*CELL_SIZE/8, 2*CELL_SIZE/5,
       this.shirt)
 
     Shapes.ellipse(ctx,
