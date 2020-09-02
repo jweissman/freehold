@@ -11,3 +11,12 @@ export const WOOD_PIECE_IMAGES = [4]
 // export const IRON_PIECE = [5]
 
 export const SIGIL_AXE = 1
+
+/////////////////////////////
+
+export const INVENTORY_LIMIT = 5
+export const STACK_MAX = 50
+
+export const TREE_CUT_DURATION = 50
+
+export const INITIAL_PAWN_COUNT = 10

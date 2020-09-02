@@ -33,13 +33,16 @@ export class PawnManagement {
       if (!token.pawn.activity) {
         // if (this.game.ticks % 2 === 0) {
           for (const activity of this.activities) {
-            if (activity.isJobAvailable()) {
+            if (activity.isJobAvailable(token)) {
               // console.log("---> A job is available: " + activity.title)
               const jobDetails = activity.findJob(token)
               if (jobDetails) {
                 // console.log("---> Got job details: " + JSON.stringify(jobDetails))
                 token.pawn.activity = activity.title;
                 token.pawn.activityTarget = jobDetails.activityTarget;
+                if (jobDetails.jobSubtype) {
+                  token.pawn.jobSubtype = jobDetails.jobSubtype;
+                } else { token.pawn.jobSubtype = undefined; }
                 this.sendPawnToPosition(token, jobDetails.travelDestination)
                 break;
               }

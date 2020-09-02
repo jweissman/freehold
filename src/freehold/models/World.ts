@@ -4,6 +4,7 @@ import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
 import { SimpleGrid } from "./SimpleGrid";
 import { pick } from "../util/pick";
+import { INITIAL_PAWN_COUNT } from "../constants";
 
 export class World {
   public pawns: Pawn[]
@@ -11,27 +12,22 @@ export class World {
   private nav: Navigator
   
 
-  constructor(public dimensions: Dimensions, public initialPawnCount: number = 3) {
+  constructor(public dimensions: Dimensions, public initialPawnCount: number = INITIAL_PAWN_COUNT) {
     this.map = new Cartogram(dimensions);
     this.nav = new Navigator(dimensions, position => {
       return this.isBlocked(position)
     });
+
+    const pawnPositions = this.map.pickClearLocations(initialPawnCount)
     this.pawns = []
     for (let i = 0; i < initialPawnCount; i++) {
-      this.pawns.push(this.makePawn(
-        pick("Sam", "Tim", "Gim", "Glo", "El") + pick("", "li", "well", "wise", "sy", "kin", "son")
-      ))
+      const pawnName =
+        pick("Beo", "Gro", "Sam", "Tim", "Gim", "Glo", "El", "Fi", "Fea") +
+        pick("", "li", "well", "wise", "sy", "kin", "son", "nor", "ich", "wulf")
+      this.pawns.push(
+        this.makePawn(pawnName, pawnPositions[i])
+      )
     }
-    //   this.makePawn('Samwell'),
-    //   //this.makePawn('Frodi'),
-    //   //this.makePawn('Gendelf'),
-    //   //this.makePawn('Argor'),
-    //   //this.makePawn('Elendil'),
-    //   //this.makePawn('Bey Wulf'),
-    //   //this.makePawn('Timtam'),
-    //   //this.makePawn('Gimlock'),
-    //   //this.makePawn('Grog'),
-    // ]
   }
 
   get width(): number { return this.dimensions[0] }
@@ -43,10 +39,12 @@ export class World {
   get rawMaterial(): Grid<Material> { return this.map.rawMaterial } 
   get rawMaterialCount(): SimpleGrid<number> { return this.map.rawMaterialCount } 
 
-  makePawn = (name: string): Pawn => {
+  makePawn = (name: string, pos: WorldPosition): Pawn => {
     return {
       name,
-      pos: this.map.pickClearLocation(),
+      pos,
+      // pos: this.map.pickRandomClearLocation(),
+      inventory: []
     }
   }
 

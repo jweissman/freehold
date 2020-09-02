@@ -21,8 +21,6 @@ export class PawnToken extends Actor {
     });
   }
 
-  
-
   skin = Color.Orange.clone().lighten(0.5)
   get shirt(): Color { return this.color.clone().darken(0.5) }
   draw(ctx: CanvasRenderingContext2D): void {

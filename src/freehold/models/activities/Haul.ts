@@ -1,31 +1,94 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { IActivity } from "../IActivity";
 import { PawnToken } from "../../actors/PawnToken";
-import { JobDetail, Activity } from "../../types";
+import { JobDetail, Activity, WorldPosition } from "../../types";
 import { Game } from "../Game";
+import { byDistanceFrom } from "../WorldPosition";
+import { PositionSet } from "../PositionSet";
+import { INVENTORY_LIMIT, STACK_MAX } from "../../constants";
 
 export class Haul implements IActivity {
   title: Activity = "hauling";
 
+  private assignedItemLocations: PositionSet = new PositionSet();
+  private assignedZoneLocations: PositionSet = new PositionSet();
+
   constructor(private game: Game) {}
 
-  isJobAvailable(): boolean {
-    // console.log("---> Is hauling job available?")
-    // return false
-    const outstandingItems = this.game.rawMaterialLocations('wood').filter(location =>
+  get outstandingItemLocations(): WorldPosition[] {
+    return this.game.rawMaterialLocations('wood').filter(location =>
       !this.game.isLocationWithinAnyZone(location)
-    )
-    return outstandingItems.length > 0 && !this.game.areAllZonesFull()
+    ).filter(location => !this.assignedItemLocations.has(location))
+  }
+
+  get freeZoneLocations(): WorldPosition[] {
+    return this.game.findUnfilledZonePositions()
+      .filter(location => !this.assignedZoneLocations.has(location))
+  }
+
+  isJobAvailable(token: PawnToken): boolean {
+    return (this.outstandingItemLocations.length > 0 && !this.game.areAllZonesFull()) ||
+           (!this.game.areAllZonesFull() && token.pawn.inventory.length > 0)
   }
 
   findJob(token: PawnToken): JobDetail {
-    console.log("would find hauling job for " + token.pawn.name)
-    return undefined
-    // throw new Error("Method not implemented.");
+    // idea: could have two kinds of job here... find 'gather' jobs until inv is full, and then a 'haul' job...?
+    const hasRoomInInventory = token.pawn.inventory.length < INVENTORY_LIMIT
+    const thereExistOutstandingItems = this.outstandingItemLocations.length > 0
+    if (hasRoomInInventory && thereExistOutstandingItems) {
+      const nearestAccessibleItemLocation = this.outstandingItemLocations
+        .sort(byDistanceFrom(token.pawn.pos))
+        .find(pos => this.game.canPathBetween(pos, token.pawn.pos))
+      if (nearestAccessibleItemLocation) {
+        this.assignedItemLocations.add(nearestAccessibleItemLocation)
+        return {
+          activityTarget: nearestAccessibleItemLocation,
+          travelDestination: nearestAccessibleItemLocation,
+          jobSubtype: 'haul-gather'
+        }
+      }
+    } else if (token.pawn.inventory.length > 0) { //} && !this.game.areAllZonesFull()) {
+      // find an un-filled zone slot...
+      const freeZoneSpace = this.freeZoneLocations
+        .sort(byDistanceFrom(token.pawn.pos))
+        .find(pos => this.game.canPathBetween(pos, token.pawn.pos))
+      if (freeZoneSpace) {
+        this.assignedZoneLocations.add(freeZoneSpace)
+        return {
+          activityTarget: freeZoneSpace,
+          travelDestination: freeZoneSpace,
+          jobSubtype: 'haul-store'
+        }
+      }
+    }
   }
 
-  perform(_token: PawnToken): Promise<void> {
-    throw new Error("Method not implemented.");
+  async perform(token: PawnToken): Promise<void> {
+    if (token.pawn.jobSubtype === 'haul-gather') {
+      const { activityTarget } = token.pawn
+      // await token.actions.delay(TREE_CUT_DURATION).asPromise()
+      const { kind, amount } = this.game.gatherResource(activityTarget)
+      for (let i = 0; i < amount; i++) {
+        token.pawn.inventory.push(kind)
+      }
+      this.assignedItemLocations.delete(activityTarget)
+    } else if (token.pawn.jobSubtype === 'haul-store') {
+      const { activityTarget } = token.pawn
+      const kind = this.game.rawMaterialKindAtLocation(activityTarget) === 'nothing'
+        ? token.pawn.inventory[0]
+        : this.game.rawMaterialKindAtLocation(activityTarget)
+      const amountLocationCanAccept = STACK_MAX - this.game.rawMaterialCountAtLocation(activityTarget)
+      let amountToStore = token.pawn.inventory.filter(k => kind === k).length
+      if (amountToStore > amountLocationCanAccept) {
+        amountToStore = amountLocationCanAccept
+      }
+      for (let i = 0; i < amountToStore; i++) {
+        const indexToRemove = token.pawn.inventory.findIndex(k => kind === k)
+        token.pawn.inventory = token.pawn.inventory.filter((_,i) => i!==indexToRemove)
+      }
+      this.game.storeResource(kind, activityTarget, amountToStore)
+      this.assignedZoneLocations.delete(activityTarget)
+    }
   }
 
 }

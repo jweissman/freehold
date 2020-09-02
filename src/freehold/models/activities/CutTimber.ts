@@ -1,9 +1,10 @@
 import { PawnToken } from "../../actors/PawnToken";
-import { byDistanceFrom, neighborsOfPosition, distanceBetween } from "../WorldPosition";
+import { byDistanceFrom, neighborsOfPosition, distanceBetween, posEq } from "../WorldPosition";
 import { Game } from "../Game";
 import { Activity, JobDetail } from "../../types";
 import { PositionSet } from "../PositionSet";
 import { IActivity } from "../IActivity";
+import { TREE_CUT_DURATION } from "../../constants";
 
 export class CutTimber implements IActivity {
   title: Activity = 'logging';
@@ -15,7 +16,6 @@ export class CutTimber implements IActivity {
     const treePositions = this.game.markedTreePositions
       .filter(pos => !this.assignedTreePositions.has(pos));
     const available = treePositions.length > 0;
-    // console.log("---> Checking if there is a logging job available...", available)
     return available;
   }
 
@@ -23,40 +23,32 @@ export class CutTimber implements IActivity {
     // if (this.game.ticks % 50 !== 0) return;
     const treePositions = [...this.game.markedTreePositions]
       .filter(pos => !this.assignedTreePositions.has(pos))
-      .filter(pos => this.game.computePath(pos, token.pawn.pos).length > 0)
-    
-    if (treePositions.length > 0) {
 
-    const treePosition = //treePositions.pop();
-      treePositions.sort(byDistanceFrom(token.pawn.pos)).pop()
-    const accessible = //distanceBetween(token.pawn.pos, treePosition) == 1 ||
-      this.game.computePath(treePosition, token.pawn.pos).length > 0
-    // console.log("---> Consider tree position ", treePosition, " is accessible ", accessible, " by pawn at ", token.pawn.pos)
-    
-    if (treePosition && accessible) {
-      const neighbors = neighborsOfPosition(treePosition, this.game.dims)
-        .filter(neighbor => !this.game.isBlocked(neighbor))
-        .filter(neighbor => distanceBetween(token.pawn.pos, neighbor) == 0 ||
-                            this.game.computePath(neighbor, token.pawn.pos).length > 0)
-        .sort(byDistanceFrom(token.pawn.pos));
-      if (neighbors.length > 0) {
-        this.assignedTreePositions.add(treePosition);
-        const travelDestination = neighbors.pop();
-        return { activityTarget: treePosition, travelDestination };
-      } else {
-        console.log("---> No neighbor found that is accessible + unblocked")
+    if (treePositions.length > 0) {
+      const treePosition = treePositions
+        .sort(byDistanceFrom(token.pawn.pos))
+        .find(pos => {
+          return neighborsOfPosition(pos, this.game.dims)
+            .filter(n => !this.game.isBlocked(n))
+            .find(n => this.game.canPathBetween(token.pawn.pos, n))
+        })
+      if (treePosition) {
+        const neighbor = neighborsOfPosition(treePosition, this.game.dims)
+          .filter(n => !this.game.isBlocked(n))
+          .sort(byDistanceFrom(token.pawn.pos))
+          .find(n => this.game.canPathBetween(token.pawn.pos, n))
+        if (neighbor) {
+          this.assignedTreePositions.add(treePosition);
+          const travelDestination = neighbor
+          return { activityTarget: treePosition, travelDestination };
+        }
       }
     }
   }
-  }
 
   async perform(token: PawnToken): Promise<void> {
-    // console.log("---> " + token.pawn.name + " is felling timber!");
-    // token.interacting = true;
-    await token.actions.delay(250).asPromise();
+    await token.actions.delay(TREE_CUT_DURATION).asPromise();
     this.game.chopTree(token.pawn.activityTarget);
     this.assignedTreePositions.delete(token.pawn.activityTarget);
-    // token.pawn.activity = undefined; //'ready'
-    // token.interacting = false;
   }
 }

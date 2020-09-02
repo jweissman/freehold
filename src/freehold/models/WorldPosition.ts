@@ -81,12 +81,14 @@ export const distanceBetween = (a: WorldPosition, b: WorldPosition): number => {
 }
 
 export const byDistanceFrom = (target: WorldPosition) => (a: WorldPosition, b: WorldPosition): number => {
-  return distanceBetween(target, a) > distanceBetween(target, b) ? -1 : 1
+  return distanceBetween(target, a) > distanceBetween(target, b) ? 1 : -1
 }
 
 export const areaContains = (topLeft: WorldPosition, bottomRight: WorldPosition, trialPos: WorldPosition): boolean => {
   const [ax, ay] = topLeft
   const [bx, by] = bottomRight
   const [x,y] = trialPos
-  return ax <= x && x <= bx && ay <= y && y <= by
+  const contained = ax <= x && x < bx && ay <= y && y < by
+  // console.log("Does area " + ax + ", " + ay + " to " + bx + ", " + by + " contain " + x + ", " + y + "?", contained)
+  return contained
 }

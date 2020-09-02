@@ -1,8 +1,8 @@
 import { World } from "./World";
 import { TileMap, SpriteSheet, TileSprite, Color } from "excalibur";
-import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES } from "../constants";
+import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES, STACK_MAX, WOOD_STACK_IMAGES } from "../constants";
 import { Grid } from "./Grid";
-import { WorldPosition, Dimensions, Material } from "../types";
+import { WorldPosition, Dimensions, Material, Item } from "../types";
 import { pick } from "../util/pick";
 import { PawnToken } from "../actors/PawnToken";
 import { SpriteSheets } from "../Resources";
@@ -25,8 +25,6 @@ export class Game {
   constructor(private world: World) { }
 
   setup(): void {
-    console.log("Game.setup")
-
     const terrainImageMap = { 'land': LAND_IMAGES, 'water': WATER_IMAGES }
     this.terrain = this.assembleTiles(
       'terrain',
@@ -70,7 +68,14 @@ export class Game {
 
   rawMaterialLocations(kind: Material): WorldPosition[] {
     return this.world.rawMaterial.occupiedLocations(kind)
-    // return []
+  }
+
+  rawMaterialKindAtLocation(location: WorldPosition): Material {
+    return this.world.rawMaterial.at(location)
+  }
+
+  rawMaterialCountAtLocation(location: WorldPosition): number {
+    return this.world.rawMaterialCount.at(location)
   }
 
   isBlocked(position: WorldPosition): boolean {
@@ -81,6 +86,10 @@ export class Game {
 
   computePath(pos: WorldPosition, dest: WorldPosition): WorldPosition[] {
     return this.world.shortestPath(pos, dest)
+  }
+
+  canPathBetween(a: WorldPosition, b: WorldPosition): boolean {
+    return posEq(a,b) || this.computePath(a, b).length > 0
   }
 
   markTree(position: WorldPosition): void {
@@ -103,10 +112,35 @@ export class Game {
     this.markedTreePositions = this.markedTreePositions.filter(treePos => !posEq(treePos, position))
 
     this.world.rawMaterial.set(position, 'wood')
-    this.world.rawMaterialCount.set(position, pick(1,2,3))
+    this.world.rawMaterialCount.set(position, 1) //pick(1,2,3))
     this.rawMaterials.getCell(ax,ay).pushSprite(
       new TileSprite('matter', pick(...WOOD_PIECE_IMAGES)))
     
+  }
+
+  gatherResource(position: WorldPosition): { kind: Item, amount: number } {
+    const kind = this.world.rawMaterial.at(position)
+    const amount = this.world.rawMaterialCount.at(position)
+    this.world.rawMaterial.set(position, 'nothing')
+    this.world.rawMaterialCount.set(position, 0)
+    const [ax, ay] = position
+    this.rawMaterials.getCell(ax,ay).clearSprites()
+    return { kind, amount }
+  }
+
+  storeResource(kind: Material, position: WorldPosition, amount: number): void {
+    // what kind of resource is here? add to it...
+    const [ax,ay] = position
+    this.rawMaterials.getCell(ax, ay).clearSprites()
+
+    this.world.rawMaterial.set(position, kind)
+    const currentCount = this.world.rawMaterialCount.at(position)
+    this.world.rawMaterialCount.set(position,
+      currentCount + amount
+    )
+    this.rawMaterials.getCell(ax,ay).pushSprite(
+      new TileSprite('matter', pick(...WOOD_STACK_IMAGES))
+    )
   }
 
   createZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
@@ -125,11 +159,16 @@ export class Game {
   }
 
   isLocationWithinAnyZone(location: WorldPosition): boolean {
-    return Boolean(
-      this.zones.find(zone => {
-        areaContains(zone.topLeft, zone.bottomRight, location)
-      })
+    const containingZone = this.zones.find(zone =>
+      areaContains(zone.topLeft, zone.bottomRight, location)
     )
+
+    if (containingZone) {
+      // console.log("---> Zone " + containingZone + " contains " + location)
+      return true
+    }
+    // console.log("---> No zone contains " + location)
+    return false
   }
 
   areAllZonesFull(): boolean {
@@ -137,13 +176,28 @@ export class Game {
     for (const zone of this.zones) {
       for (let y = zone.topLeft[1]; y <= zone.bottomRight[1]; y++) {
         for (let x = zone.topLeft[0]; x <= zone.bottomRight[0]; x++) {
-          if (this.world.rawMaterialCount.at(pos(x,y)) < 50) {
+          if (this.world.rawMaterialCount.at(pos(x,y)) < STACK_MAX) {
             return false
           }
         }
       }
     }
     return true
+  }
+
+  findUnfilledZonePositions(): WorldPosition[] {
+    const positions: WorldPosition[] = []
+    for (const zone of this.zones) {
+      for (let y = zone.topLeft[1]; y < zone.bottomRight[1]; y++) {
+        for (let x = zone.topLeft[0]; x < zone.bottomRight[0]; x++) {
+          if (this.world.rawMaterialCount.at(pos(x,y)) < STACK_MAX) {
+            // return false
+            positions.push(pos(x,y))
+          }
+        }
+      }
+    }
+    return positions;
   }
 
   private inBounds(pos: WorldPosition): boolean {

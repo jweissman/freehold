@@ -24,7 +24,7 @@ export class Play extends Scene {
   onInitialize(engine: FreeholdEngine): void {
     console.log("Play.onInitialize")
 
-    const world = new World([20,25] as Dimensions);
+    const world = new World([60,40] as Dimensions);
     this.game = new Game(world)
     this.game.setup()
 
@@ -51,7 +51,7 @@ export class Play extends Scene {
     this.game.pawnTokens.forEach(pawnToken => this.add(pawnToken))
 
     // this.camera.zoom(2.5)
-    this.camera.pos = new Vector(100,100)
+    // this.camera.pos = new Vector(100,100)
   }
 
   setAction(action: Action): void {

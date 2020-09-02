@@ -1,8 +1,9 @@
 import { Terrain, WorldPosition, Dimensions, Vegetation, Sigil, Material } from "../types";
 import { Grid } from "./Grid";
-import { pos } from "./WorldPosition";
+import { pos, byDistanceFrom } from "./WorldPosition";
 import { pick } from "../util/pick";
 import { SimpleGrid } from "./SimpleGrid";
+import { take } from "../util/take";
 
 // type Matter = { kind: Material, amount: number }
 export class Cartogram {
@@ -23,7 +24,7 @@ export class Cartogram {
 
     this.terrain.fill('land')
     this.vegetation.fill('nothing')
-    this.vegetation.distributeRandomly('tree', 0.8)
+    this.vegetation.distributeRandomly('tree', 0.3)
     this.rawMaterial.fill('nothing')
     this.sigils.fill('nothing')
   }
@@ -38,7 +39,7 @@ export class Cartogram {
     ] as WorldPosition
   }
 
-  pickClearLocation(): WorldPosition {
+  pickRandomClearLocation(): WorldPosition {
     const locations: WorldPosition[] = []
     for (let y=0; y<this.height; y++) {
       for (let x=0; x<this.width; x++) {
@@ -48,5 +49,17 @@ export class Cartogram {
       }
     }
     return pick(...locations)
+  }
+
+  pickClearLocations(n: number, nearPoint: WorldPosition = this.center): WorldPosition[] {
+    const locations: WorldPosition[] = []
+    for (let y=0; y<this.height; y++) {
+      for (let x=0; x<this.width; x++) {
+        if (this.vegetation.at(pos(x,y)) !== 'tree') {
+          locations.push(pos(x,y))
+        }
+      }
+    }
+    return take(n, locations.sort(byDistanceFrom(nearPoint)))
   }
 }
