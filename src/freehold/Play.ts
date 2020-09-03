@@ -1,4 +1,4 @@
-import { Scene, Vector, Actor, Color, Input, Label } from "excalibur";
+import { Scene, Vector, Actor, Color, Input, Label, Traits } from "excalibur";
 import { Game } from "./models/Game";
 import { World } from "./models/World";
 import { Dimensions, WorldPosition } from "./types";
@@ -9,7 +9,7 @@ import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
 import { ZoneView } from "./actors/ZoneView";
 
-type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone'
+type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone' | 'inspect'
 export class Play extends Scene {
   game: Game
   cursor: SingleCellBox
@@ -21,38 +21,102 @@ export class Play extends Scene {
   label: Label
   regionView: ZoneView
 
+  lastMouseButton: Input.PointerButton
+
+  panOrigin: Vector
+  panning: boolean
+
   onInitialize(engine: FreeholdEngine): void {
+    // this.back
     console.log("Play.onInitialize")
 
     const world = new World(WORLD_DIMS) //[60,40] as Dimensions);
     this.game = new Game(world)
     this.game.setup()
 
-    this.add(this.game.terrain)
+    // this.add(this.game.terrain)
     this.add(this.game.vegetation)
     this.add(this.game.rawMaterials)
     this.add(this.game.sigils)
 
     this.label = new Label("...", 20, 20)
     this.label.color = Color.White
+    // this.label.
+        // this.label.traits = this.label.traits.filter(trait => !(trait instanceof Traits.OffscreenCulling))
+
     this.add(this.label)
     this.setAction('cut')
 
     this.regionView = new ZoneView(this.game, this.camera)
     this.add(this.regionView)
 
+    this.camera.pos =
+      new Vector(world.pawns[0].pos[0] * CELL_SIZE, world.pawns[0].pos[1] * CELL_SIZE);
+
     const mouse = engine.input.pointers.primary
-    mouse.on('move', (e) => this.updateCursorPosition(e.pos))
-    mouse.on('down', () => {
-      console.log("---> Mouse down at " + this.cursorWorldPos)
-      if (this.currentAction === 'delete-zone') {
-        this.game.deleteZoneAt(this.cursorWorldPos)
+    mouse.on('move', (e) => {
+      this.updateCursorPosition(e.pos)
+      if (this.lastMouseButton === Input.PointerButton.Middle) {
+        // pan camera
+        if (this.panning) {
+          console.log("would pan...")
+          // const panVec = this.panOrigin.sub(mouse.lastWorldPos)
+          // this.camera.vel = panVec //(panVec.negate())
+          // this.panOrigin.subEqual(mouse.lastWorldPos)
+          // this.panOrigin = panVec.add(mouse.lastWorldPos) //this.camera.pos.add(panVec)
+          this.camera.pos.addEqual(
+                    this.panOrigin.sub( mouse.lastWorldPos)  //e.pos)
+                )
+        } else {
+          this.camera.vel = new Vector(0,0)
+        }
+      } else {
+        // possible handle drag
+        const enforceLines = this.currentAction === 'build'
+        this.handleLeftDrag(mouse, enforceLines)
+      }//.Right) {}
+      // this.handleDrag(mouse)
+    })
+    mouse.on('up', (e) => {
+      if (this.lastMouseButton == Input.PointerButton.Left) {
+        const enforceLines = this.currentAction === 'build'
+        // this.handleDrag(mouse, enforceLines)
+        const { isFinished } = this.handleLeftDrag(mouse, enforceLines)
+        console.log("---> Drag finished?", isFinished)
+        if(isFinished) { return this.applyCurrentActionToDragArea() }
+      } else if (this.lastMouseButton === Input.PointerButton.Middle) {
+        this.panning = false
+      }
+    })
+    mouse.on('down', (e) => {
+      this.lastMouseButton = e.button
+      if (e.button == Input.PointerButton.Left) {
+        console.log("---> Mouse down (left-click) at " + this.cursorWorldPos)
+
+        // if (!mouse.isDragStart) {
+        // if (this.currentAction === 'cut' && !mouse.isDragStart) {
+          // this.game.markTree(this.cursorWorldPos)
+        // } else if (this.currentAction === 'create-zone') {
+          // this.game.declareZone(this.cursorWorldPos, this.cursorWorldPos)
+        // } else 
+        if (this.currentAction === 'delete-zone') {
+          this.game.deleteZoneAt(this.cursorWorldPos)
+          //   // }
+        } //else {
+        // handle drag begin?
+        const enforceLines = this.currentAction === 'build'
+        this.handleLeftDrag(mouse, enforceLines)
+        // }
+      } else if (e.button == Input.PointerButton.Middle) {
+        console.log("---> would start pan at...")
+        this.panOrigin = mouse.lastWorldPos
+        this.panning = true
       }
     })
     this.cursor = new SingleCellBox()
     this.add(this.cursor)
 
-    this.dragEnvelope = new Actor({ color: Color.Gray, opacity: 0.3, anchor: new Vector(0,0) })
+    this.dragEnvelope = new Actor({ color: Color.Gray, opacity: 0.3, anchor: new Vector(0, 0) })
     this.add(this.dragEnvelope)
 
     this.game.pawnTokens.forEach(pawnToken => this.add(pawnToken))
@@ -87,37 +151,47 @@ export class Play extends Scene {
       this.setAction('create-zone')
     } else if (keys.isHeld(Input.Keys.D)) {
       this.setAction('delete-zone')
-    }
-
-    const mouse = engine.input.pointers.primary
-    // if (mouse.)
-    // draggable actions...
-    // if (mouse.)
-    if (this.currentAction === 'cut' || this.currentAction === 'create-zone' || this.currentAction === 'build') {
-      const enforceLines = this.currentAction === 'build'
-      const { isFinished } = this.handleDrag(mouse, enforceLines)
-      if (isFinished) {
-        // console.log("==== DRAG COMPLETE ====")
-        const [originX, originY] = this.drag.minima
-      //  console.log("---> Drag region: begins at " + originX + "," + originY)
-       const [destX, destY] = this.drag.maxima
-        if (this.currentAction === 'cut') {
-          for (let x = originX; x <= destX; x++) {
-            for (let y = originY; y <= destY; y++) {
-              this.game.markTree(pos(x, y))
-            }
-          }
-        } else if (this.currentAction === 'create-zone') {
-          this.game.declareZone(pos(originX, originY), pos(destX, destY))
-        } else if (this.currentAction === 'build') {
-          this.game.planWall(pos(originX, originY), pos(originX + this.drag.extent[0], originY + this.drag.extent[1]))
-        }
- 
-      }
+    } else if (keys.isHeld(Input.Keys.Esc)) {
+      this.setAction('inspect')
+      this.drag = null
     }
   }
 
-  private handleDrag(mouse: Input.Pointer, enforceLines: boolean): { isFinished: boolean } {
+  applyCurrentActionToDragArea(): void {
+    console.log("---> Apply current action to drag area...")
+    // if (!this.drag.origin) { return } // hmm
+    //const mouse = engine.input.pointers.primary
+    //// if (mouse.)
+    //// draggable actions...
+    //// if (mouse.)
+    //if (this.currentAction === 'cut' || this.currentAction === 'create-zone' || this.currentAction === 'build') {
+    //  const enforceLines = this.currentAction === 'build'
+    //  const { isFinished } = this.handleDrag(mouse, enforceLines)
+    //  if (isFinished) {
+       // console.log("==== DRAG COMPLETE ====")
+       const [originX, originY] = this.drag.minima
+     //  console.log("---> Drag region: begins at " + originX + "," + originY)
+      const [destX, destY] = this.drag.maxima
+      console.log("Current action is " + this.currentAction)
+      console.log("Drag area is from " + originX + "," + originY + " to " + destX + ", " + destY)
+       if (this.currentAction === 'cut') {
+         console.log("---> Cut timber from " + originX + "," + originY + " to " + destX + ", " + destY)
+         for (let x = originX; x <= destX; x++) {
+           for (let y = originY; y <= destY; y++) {
+             this.game.markTree(pos(x, y))
+           }
+         }
+       } else if (this.currentAction === 'create-zone') {
+         this.game.declareZone(pos(originX, originY), pos(destX, destY))
+       } else if (this.currentAction === 'build') {
+         this.game.planWall(pos(originX, originY), pos(destX, destY))
+       }
+ 
+    //  }
+    //}
+  }
+
+  private handleLeftDrag(mouse: Input.Pointer, enforceLines: boolean): { isFinished: boolean } {
     let isFinished = false
     if (mouse.isDragStart) {
       this.drag = new Drag(this.cursorWorldPos, enforceLines)

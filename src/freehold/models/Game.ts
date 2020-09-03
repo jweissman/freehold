@@ -32,6 +32,7 @@ export class Game {
       this.world.terrain,
       terrainImageMap
     )
+    // this.terrain.
 
     const vegetationImageMap = { 'tree': TREE_IMAGES }
     this.vegetation = this.assembleTiles(

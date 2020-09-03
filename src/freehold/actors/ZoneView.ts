@@ -1,10 +1,11 @@
-import { Vector, Actor, Camera, Color } from "excalibur";
+import { Vector, Actor, Camera, Color, Traits } from "excalibur";
 import { Game } from "../models/Game";
 import { CELL_SIZE } from "../constants";
 import { pos } from "../models/WorldPosition";
 export class ZoneView extends Actor {
   constructor(private game: Game, private camera: Camera) {
     super({ pos: new Vector(0, 0) });
+    this.traits = this.traits.filter(trait => !(trait instanceof Traits.OffscreenCulling))
   }
 
   draw(ctx: CanvasRenderingContext2D): void {

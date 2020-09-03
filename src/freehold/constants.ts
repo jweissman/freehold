@@ -28,8 +28,9 @@ export const STACK_MAX = 50
 
 export const TREE_CUT_DURATION = 50
 
-export const INITIAL_PAWN_COUNT = 5
-export const WORLD_DIMS = [20,25] as Dimensions
+export const INITIAL_PAWN_COUNT = 8
+export const WORLD_DIMS = [260,240] as Dimensions
+export const TREE_COVER_RATIO = 0.5
 
 /////////////////////////////
 
@@ -41,16 +42,16 @@ export const DWARVEN_LANGUAGE: Language = {
     'Bal', 'Bif', 'Bof', 'Bomb', 'Born',
     'D', 'Dor', 'Dur','Dwal',
     'Fr', 'Far', 'Fund', 'Frer', 'Fl', 'Fil',
-    'Giml', 'Gam', 'Gr', 'Gl',
+    'Giml', 'Gam', 'Gr', 'Gl', 'Gwaih',
     'Ib',
-    'Lon',
-    'M',
-    'Na',
-    'O',
     'Kil', 'Kh',
+    'Lon', 'Landrov',
+    'M', 'Meneld',
+    'N', 'Na', 'Nor', 'Narv',
+    'O',
     'Telch', 'Thor', 'Thr', 'Th'
   ],
-  suffixes: ['in', 'is', 'i', 'un', 'im', 'or', 'erin', 'ar', 'ain'],
+  suffixes: ['in', 'is', 'i', 'un', 'im', 'or', 'erin', 'ar', 'ain', 'al'],
 }
 
 // export const ELVEN_LANGUAGE: Language = {

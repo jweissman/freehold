@@ -12,15 +12,21 @@ export class CutTimber implements IActivity {
 
   private assignedTreePositions: PositionSet = new PositionSet();
 
-  isJobAvailable(): boolean {
+  isJobAvailable(token: PawnToken): boolean {
     const treePositions = this.game.markedTreePositions
-      .filter(pos => !this.assignedTreePositions.has(pos));
-    const available = treePositions.length > 0;
-    return available;
+      .filter(pos => !this.assignedTreePositions.has(pos))
+      .sort(byDistanceFrom(token.pawn.pos))
+      .find(pos => neighborsOfPosition(pos, this.game.dims)
+        .filter(n => !this.game.isBlocked(n))
+        .find(n => this.game.canPathBetween(token.pawn.pos, n))
+      );
+    const available = treePositions //.length > 0;
+    return Boolean(available);
   }
 
   findJob(token: PawnToken): JobDetail {
-    // if (this.game.ticks % 50 !== 0) return;
+    // if (this.game.ticks % 5 !== 0) return;
+    // console.log("---> Find timber job for " + token.pawn.name)
     const treePositions = [...this.game.markedTreePositions]
       .filter(pos => !this.assignedTreePositions.has(pos))
 

@@ -23,6 +23,7 @@ export class Navigator {
   }
 
   aStar(source: WorldPosition, destination: WorldPosition): NavigationResult { 
+    const startedAt = new Date().getTime()
     const fringe = new PositionSet([source])
     const prev = new SimpleGrid<WorldPosition>()
     const gScore = new SimpleGrid<number>(Infinity)
@@ -36,6 +37,11 @@ export class Navigator {
     gScore.set(source, 0)
     fScore.set(source, heuristic(source))
     while (!fringe.empty()) {
+      const now = new Date().getTime()
+      const elapsed = now - startedAt //- now
+      // console.log("a* elapsed: " + elapsed)
+      if (elapsed > 50) { console.log("a-star hit timeout"); break }
+      
       const current: WorldPosition = fringe.array.sort(byFScore)[0]
       if (posEq(current, destination)) {
         return { path: this.reconstructPath(prev, current), found: true }

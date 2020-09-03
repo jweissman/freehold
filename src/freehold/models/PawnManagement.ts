@@ -32,7 +32,7 @@ export class PawnManagement {
     } else {
       if (!token.pawn.activity) {
         // if (this.game.ticks % 2 === 0) {
-          for (const activity of this.activities) {
+          for (const activity of this.activities.sort((a,b) => token.priority(a) > token.priority(b) ? -1 : 1)) {
             if (activity.isJobAvailable(token)) {
               // console.log("---> A job is available: " + activity.title)
               const jobDetails = activity.findJob(token)

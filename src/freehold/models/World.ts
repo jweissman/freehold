@@ -1,10 +1,11 @@
 import { Cartogram } from "../models/Cartogram";
-import { Pawn, Dimensions, Terrain, Vegetation, WorldPosition, Sigil, Material } from "../types";
+import { Pawn, Dimensions, Terrain, Vegetation, WorldPosition, Sigil, Material, Activity } from "../types";
 import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
 import { SimpleGrid } from "./SimpleGrid";
 import { pick } from "../util/pick";
 import { INITIAL_PAWN_COUNT, NAME_INITIAL_SYLLABLES, NAME_FINAL_SYLLABLES, DWARVEN_LANGUAGE } from "../constants";
+import { shuffle } from "../util/shuffle";
 
 export class World {
   public pawns: Pawn[]
@@ -47,7 +48,8 @@ export class World {
       name,
       pos,
       // pos: this.map.pickRandomClearLocation(),
-      inventory: []
+      inventory: [],
+      priorities: shuffle('logging', 'hauling', 'building') as Activity[]
     }
   }
 

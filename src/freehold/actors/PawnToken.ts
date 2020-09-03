@@ -3,8 +3,13 @@ import { CELL_SIZE } from "../constants";
 import { Pawn, WorldPosition } from "../types";
 import { pick } from "../util/pick";
 import { Shapes } from "../canvas/Shapes";
+import { IActivity } from "../models/IActivity";
 
 export class PawnToken extends Actor {
+  priority(a: IActivity) {
+    return this.pawn.priorities.indexOf(a.title)
+    // throw new Error("Method not implemented.");
+  }
   moving = false;
   interacting = false;
   path: WorldPosition[] = []

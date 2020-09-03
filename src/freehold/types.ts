@@ -14,6 +14,8 @@ export type Pawn = {
   pos: WorldPosition,
   inventory: Item[],
 
+  priorities: Activity[],
+
   dest?: WorldPosition,
   activity?: Activity,
   activityTarget?: WorldPosition,

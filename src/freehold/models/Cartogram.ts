@@ -4,6 +4,7 @@ import { pos, byDistanceFrom } from "./WorldPosition";
 import { pick } from "../util/pick";
 import { SimpleGrid } from "./SimpleGrid";
 import { take } from "../util/take";
+import { TREE_COVER_RATIO } from "../constants";
 
 // type Matter = { kind: Material, amount: number }
 export class Cartogram {
@@ -24,7 +25,7 @@ export class Cartogram {
 
     this.terrain.fill('land')
     this.vegetation.fill('nothing')
-    this.vegetation.distributeRandomly('tree', 0.3)
+    this.vegetation.distributeRandomly('tree', TREE_COVER_RATIO)
     this.rawMaterial.fill('nothing')
     this.sigils.fill('nothing')
   }

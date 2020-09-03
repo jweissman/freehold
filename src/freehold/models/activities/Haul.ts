@@ -34,7 +34,6 @@ export class Haul implements IActivity {
   }
 
   findJob(token: PawnToken): JobDetail {
-    // idea: could have two kinds of job here... find 'gather' jobs until inv is full, and then a 'haul' job...?
     const hasRoomInInventory = token.pawn.inventory.length < INVENTORY_LIMIT
     // console.log("---> Does " + token.pawn.name  + " have room in inventory? " + hasRoomInInventory)
     const thereExistOutstandingItems = this.outstandingItemLocations.length > 0
