@@ -1,5 +1,5 @@
 import { PawnToken } from "../../actors/PawnToken";
-import { byDistanceFrom, neighborsOfPosition, distanceBetween, posEq } from "../WorldPosition";
+import { byDistanceFrom, neighborsOfPosition } from "../WorldPosition";
 import { Game } from "../Game";
 import { Activity, JobDetail } from "../../types";
 import { PositionSet } from "../PositionSet";

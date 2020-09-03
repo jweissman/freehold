@@ -9,7 +9,7 @@ import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
 import { ZoneView } from "./actors/ZoneView";
 
-type Action = 'cut' | 'build' | 'zone'
+type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone'
 export class Play extends Scene {
   game: Game
   cursor: SingleCellBox
@@ -41,7 +41,14 @@ export class Play extends Scene {
     this.regionView = new ZoneView(this.game, this.camera)
     this.add(this.regionView)
 
-    engine.input.pointers.primary.on('move', (e) => this.updateCursorPosition(e.pos))
+    const mouse = engine.input.pointers.primary
+    mouse.on('move', (e) => this.updateCursorPosition(e.pos))
+    mouse.on('down', () => {
+      // if (e.button === 0)
+      if (this.currentAction === 'delete-zone') {
+        this.game.deleteZoneAt(this.cursorWorldPos)
+      }
+    })
     this.cursor = new SingleCellBox()
     this.add(this.cursor)
 
@@ -52,6 +59,7 @@ export class Play extends Scene {
 
     // this.camera.zoom(2.5)
     // this.camera.pos = new Vector(100,100)
+    // mouse.on('down', )
   }
 
   setAction(action: Action): void {
@@ -82,35 +90,42 @@ export class Play extends Scene {
     } else if (keys.isHeld(Input.Keys.C)) {
       this.setAction('cut')
     } else if (keys.isHeld(Input.Keys.Z)) {
-      this.setAction('zone')
+      this.setAction('create-zone')
+    } else if (keys.isHeld(Input.Keys.D)) {
+      this.setAction('delete-zone')
     }
 
     const mouse = engine.input.pointers.primary
     // if (mouse.)
-    if (mouse.isDragStart) {
-      this.drag = new Drag(this.cursorWorldPos)
-    } else if (mouse.isDragEnd) {
-      const [originX,originY] = this.drag.minima
-      const [destX,destY] = this.drag.maxima
-      if (this.currentAction === 'cut') {
-        for (let x = originX; x < destX; x++) {
-          for (let y = originY; y < destY; y++) {
-            this.game.markTree(pos(x, y))
+    if (this.currentAction === 'cut' || this.currentAction === 'create-zone') {
+      if (mouse.isDragStart) {
+        this.drag = new Drag(this.cursorWorldPos)
+        // } else {
+        // this.game.deleteZoneAt(this.cursorWorldPos)
+        // }
+      } else if (mouse.isDragEnd) {
+        const [originX, originY] = this.drag.minima
+        const [destX, destY] = this.drag.maxima
+        if (this.currentAction === 'cut') {
+          for (let x = originX; x < destX; x++) {
+            for (let y = originY; y < destY; y++) {
+              this.game.markTree(pos(x, y))
+            }
           }
+        } else if (this.currentAction === 'create-zone') {
+          this.game.createZone(pos(originX, originY), pos(destX, destY))
         }
-      } else if (this.currentAction === 'zone') {
-        this.game.createZone(pos(originX,originY), pos(destX,destY))
+        this.dragEnvelope.visible = false
+      } else if (mouse.isDragging) {
+        this.drag.continue(this.cursorWorldPos)
+        this.dragEnvelope.pos = new Vector(
+          (this.drag.origin[0] * CELL_SIZE) + 1,
+          (this.drag.origin[1] * CELL_SIZE) + 1,
+        )
+        this.dragEnvelope.width = (this.drag.extent[0] * CELL_SIZE)
+        this.dragEnvelope.height = (this.drag.extent[1] * CELL_SIZE)
+        this.dragEnvelope.visible = true
       }
-      this.dragEnvelope.visible = false
-    } else if (mouse.isDragging) {
-      this.drag.continue(this.cursorWorldPos)
-      this.dragEnvelope.pos = new Vector(
-        (this.drag.origin[0] * CELL_SIZE) + 1,
-        (this.drag.origin[1] * CELL_SIZE) + 1,
-      )
-      this.dragEnvelope.width = (this.drag.extent[0] * CELL_SIZE)
-      this.dragEnvelope.height = (this.drag.extent[1] * CELL_SIZE)
-      this.dragEnvelope.visible = true
     }
   }
 }

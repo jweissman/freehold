@@ -11,7 +11,7 @@ export class Haul implements IActivity {
   title: Activity = "hauling";
 
   private assignedItemLocations: PositionSet = new PositionSet();
-  private assignedZoneLocations: PositionSet = new PositionSet();
+  // private assignedZoneLocations: PositionSet = new PositionSet();
 
   constructor(private game: Game) {}
 
@@ -23,17 +23,20 @@ export class Haul implements IActivity {
 
   get freeZoneLocations(): WorldPosition[] {
     return this.game.findUnfilledZonePositions()
-      .filter(location => !this.assignedZoneLocations.has(location))
+      // .filter(location => !this.assignedZoneLocations.has(location))
   }
 
   isJobAvailable(token: PawnToken): boolean {
-    return (this.outstandingItemLocations.length > 0 && !this.game.areAllZonesFull()) ||
-           (!this.game.areAllZonesFull() && token.pawn.inventory.length > 0)
+    const canGather = (this.outstandingItemLocations.length > 0 && !this.game.areAllZonesFull())
+    const canStore = (!this.game.areAllZonesFull() && token.pawn.inventory.length > 0)
+    // console.log("---> Is a hauling job available for " + token.pawn.name + "?", { canGather, canStore });
+    return canGather || canStore
   }
 
   findJob(token: PawnToken): JobDetail {
     // idea: could have two kinds of job here... find 'gather' jobs until inv is full, and then a 'haul' job...?
     const hasRoomInInventory = token.pawn.inventory.length < INVENTORY_LIMIT
+    // console.log("---> Does " + token.pawn.name  + " have room in inventory? " + hasRoomInInventory)
     const thereExistOutstandingItems = this.outstandingItemLocations.length > 0
     if (hasRoomInInventory && thereExistOutstandingItems) {
       const nearestAccessibleItemLocation = this.outstandingItemLocations
@@ -53,7 +56,7 @@ export class Haul implements IActivity {
         .sort(byDistanceFrom(token.pawn.pos))
         .find(pos => this.game.canPathBetween(pos, token.pawn.pos))
       if (freeZoneSpace) {
-        this.assignedZoneLocations.add(freeZoneSpace)
+        // this.assignedZoneLocations.add(freeZoneSpace)
         return {
           activityTarget: freeZoneSpace,
           travelDestination: freeZoneSpace,
@@ -66,8 +69,8 @@ export class Haul implements IActivity {
   async perform(token: PawnToken): Promise<void> {
     if (token.pawn.jobSubtype === 'haul-gather') {
       const { activityTarget } = token.pawn
-      // await token.actions.delay(TREE_CUT_DURATION).asPromise()
-      const { kind, amount } = this.game.gatherResource(activityTarget)
+      const maxToAccept = INVENTORY_LIMIT - token.pawn.inventory.length
+      const { kind, amount } = this.game.gatherResource(activityTarget, maxToAccept)
       for (let i = 0; i < amount; i++) {
         token.pawn.inventory.push(kind)
       }
@@ -87,7 +90,7 @@ export class Haul implements IActivity {
         token.pawn.inventory = token.pawn.inventory.filter((_,i) => i!==indexToRemove)
       }
       this.game.storeResource(kind, activityTarget, amountToStore)
-      this.assignedZoneLocations.delete(activityTarget)
+      // this.assignedZoneLocations.delete(activityTarget)
     }
   }
 

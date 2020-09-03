@@ -25,6 +25,12 @@ export class PawnToken extends Actor {
   get shirt(): Color { return this.color.clone().darken(0.5) }
   draw(ctx: CanvasRenderingContext2D): void {
     let {x, y} = this.pos;
+
+    ctx.fillStyle = '#fff'
+
+    const textLength =ctx.measureText(this.pawn.name).width
+    ctx.fillText(this.pawn.name, x - textLength/2 + CELL_SIZE/2, y - 8)
+
     x += CELL_SIZE/2
     y += CELL_SIZE/2
     Shapes.ellipse(ctx,

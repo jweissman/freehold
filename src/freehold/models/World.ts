@@ -4,7 +4,7 @@ import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
 import { SimpleGrid } from "./SimpleGrid";
 import { pick } from "../util/pick";
-import { INITIAL_PAWN_COUNT } from "../constants";
+import { INITIAL_PAWN_COUNT, NAME_INITIAL_SYLLABLES, NAME_FINAL_SYLLABLES } from "../constants";
 
 export class World {
   public pawns: Pawn[]
@@ -22,8 +22,8 @@ export class World {
     this.pawns = []
     for (let i = 0; i < initialPawnCount; i++) {
       const pawnName =
-        pick("Beo", "Gro", "Sam", "Tim", "Gim", "Glo", "El", "Fi", "Fea") +
-        pick("", "li", "well", "wise", "sy", "kin", "son", "nor", "ich", "wulf")
+        pick(...NAME_INITIAL_SYLLABLES) +
+        pick(...NAME_FINAL_SYLLABLES)
       this.pawns.push(
         this.makePawn(pawnName, pawnPositions[i])
       )

@@ -1,6 +1,6 @@
 import { World } from "./World";
 import { TileMap, SpriteSheet, TileSprite, Color } from "excalibur";
-import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES, STACK_MAX, WOOD_STACK_IMAGES } from "../constants";
+import { LAND_IMAGES, WATER_IMAGES, TREE_IMAGES, CELL_SIZE, SIGIL_AXE, WOOD_PIECE_IMAGES, STACK_MAX, WOOD_STACK_IMAGES, MATERIAL_IMAGES, MATERIAL_STACK_IMAGES } from "../constants";
 import { Grid } from "./Grid";
 import { WorldPosition, Dimensions, Material, Item } from "../types";
 import { pick } from "../util/pick";
@@ -118,28 +118,45 @@ export class Game {
     
   }
 
-  gatherResource(position: WorldPosition): { kind: Item, amount: number } {
+  gatherResource(position: WorldPosition, maxToRemove: number): { kind: Item, amount: number } {
     const kind = this.world.rawMaterial.at(position)
-    const amount = this.world.rawMaterialCount.at(position)
-    this.world.rawMaterial.set(position, 'nothing')
-    this.world.rawMaterialCount.set(position, 0)
+    const amountAtPosition = this.world.rawMaterialCount.at(position)
+    const amountRemoved = Math.min(amountAtPosition, maxToRemove)
+    const amountRemaining = amountAtPosition - amountRemoved
+    this.world.rawMaterialCount.set(position, amountRemaining)
+    if (amountRemaining === 0) {
+      this.world.rawMaterial.set(position, 'nothing')
+    }
     const [ax, ay] = position
-    this.rawMaterials.getCell(ax,ay).clearSprites()
-    return { kind, amount }
+    this.rawMaterials.getCell(ax, ay).clearSprites()
+    if (amountRemaining > 0) {
+      let sprite = new TileSprite('matter', pick(...MATERIAL_IMAGES[kind]))
+      if (amountRemaining > STACK_MAX / 2) {
+        sprite = new TileSprite('matter', pick(...MATERIAL_STACK_IMAGES[kind]))
+      }
+      this.rawMaterials.getCell(ax, ay).pushSprite(sprite)
+    }
+    return { kind, amount: amountRemoved }
   }
 
   storeResource(kind: Material, position: WorldPosition, amount: number): void {
     // what kind of resource is here? add to it...
-    const [ax,ay] = position
-    this.rawMaterials.getCell(ax, ay).clearSprites()
+    const [ax, ay] = position
 
     this.world.rawMaterial.set(position, kind)
     const currentCount = this.world.rawMaterialCount.at(position)
+    const newAmount = currentCount + amount
     this.world.rawMaterialCount.set(position,
-      currentCount + amount
+      newAmount
     )
-    this.rawMaterials.getCell(ax,ay).pushSprite(
-      new TileSprite('matter', pick(...WOOD_STACK_IMAGES))
+
+    this.rawMaterials.getCell(ax, ay).clearSprites()
+    let sprite = new TileSprite('matter', pick(...MATERIAL_IMAGES[kind]))
+    if (newAmount > STACK_MAX / 2) {
+      sprite = new TileSprite('matter', pick(...MATERIAL_STACK_IMAGES[kind]))
+    }
+    this.rawMaterials.getCell(ax, ay).pushSprite(
+      sprite
     )
   }
 
@@ -156,6 +173,12 @@ export class Game {
       console.log("---> Not creating zone; zone had no size?")
     }
     // throw new Error("Method not implemented.");
+  }
+
+  deleteZoneAt(location: WorldPosition): void {
+    this.zones = this.zones.filter(zone =>
+      !areaContains(zone.topLeft, zone.bottomRight, location)
+    )
   }
 
   isLocationWithinAnyZone(location: WorldPosition): boolean {
