@@ -4,7 +4,7 @@ import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
 import { SimpleGrid } from "./SimpleGrid";
 import { pick } from "../util/pick";
-import { INITIAL_PAWN_COUNT, NAME_INITIAL_SYLLABLES, NAME_FINAL_SYLLABLES } from "../constants";
+import { INITIAL_PAWN_COUNT, NAME_INITIAL_SYLLABLES, NAME_FINAL_SYLLABLES, DWARVEN_LANGUAGE } from "../constants";
 
 export class World {
   public pawns: Pawn[]
@@ -20,11 +20,14 @@ export class World {
 
     const pawnPositions = this.map.pickClearLocations(initialPawnCount)
     this.pawns = []
+    const language = DWARVEN_LANGUAGE
     for (let i = 0; i < initialPawnCount; i++) {
-      const pawnName =
-        pick(...NAME_INITIAL_SYLLABLES) +
-        pick(...NAME_FINAL_SYLLABLES)
-      this.pawns.push(
+      // const pawnNames = [
+      const pawnName = pick(...language.stems) + pick(...language.suffixes)
+      //   pick(...language.stems) + pick(...language.suffixes),
+      //   pick(...language.stems) + pick(...language.suffixes),
+      // ].sort((a,b) => a.length >= b.length ? 1 : -1)
+      this.pawns.push( 
         this.makePawn(pawnName, pawnPositions[i])
       )
     }

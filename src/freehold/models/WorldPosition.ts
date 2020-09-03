@@ -88,7 +88,7 @@ export const areaContains = (topLeft: WorldPosition, bottomRight: WorldPosition,
   const [ax, ay] = topLeft
   const [bx, by] = bottomRight
   const [x,y] = trialPos
-  const contained = ax <= x && x < bx && ay <= y && y < by
+  const contained = ax <= x && x <= bx && ay <= y && y <= by
   // console.log("Does area " + ax + ", " + ay + " to " + bx + ", " + by + " contain " + x + ", " + y + "?", contained)
   return contained
 }

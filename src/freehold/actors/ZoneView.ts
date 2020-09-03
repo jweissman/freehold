@@ -16,8 +16,8 @@ export class ZoneView extends Actor {
       this.gridAlignedRect(ctx, x0, y0, x1, y1, zone.color)
 
       ctx.fillStyle = '#fff'
-      for (let x=x0; x<x1; x++) {
-        for (let y=y0; y<y1; y++) {
+      for (let x=x0; x<=x1; x++) {
+        for (let y=y0; y<=y1; y++) {
           const count = this.game.rawMaterialCountAtLocation(pos(x,y))
           ctx.fillText("x" + count, x*CELL_SIZE + CELL_SIZE/2, y*CELL_SIZE + CELL_SIZE)
         }
@@ -29,8 +29,8 @@ export class ZoneView extends Actor {
 
       const x = x0 * CELL_SIZE; //+ this.camera.x
       const y = y0 * CELL_SIZE; //+ this.camera.y
-      const w = (x1 - x0) * CELL_SIZE;
-      const h = (y1 - y0) * CELL_SIZE;
+      const w = (x1 - x0 + 1) * CELL_SIZE;
+      const h = (y1 - y0 + 1) * CELL_SIZE;
 
       ctx.fillStyle = color.toRGBA();
       ctx.fillRect(x, y, w, h);

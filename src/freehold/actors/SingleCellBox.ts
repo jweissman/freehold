@@ -6,7 +6,7 @@ export class SingleCellBox extends Actor {
       color: Color.Gray,
       width: CELL_SIZE,
       height: CELL_SIZE,
-      anchor: new Vector(1, 1),
+      anchor: new Vector(0, 0),
       opacity: 0.5,
     });
   }

@@ -82,8 +82,6 @@ export class Game {
     return this.world.isBlocked(position)
   }
 
-  
-
   computePath(pos: WorldPosition, dest: WorldPosition): WorldPosition[] {
     return this.world.shortestPath(pos, dest)
   }
@@ -160,11 +158,16 @@ export class Game {
     )
   }
 
-  createZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
+  planWall(origin: WorldPosition, destination: WorldPosition): void {
+    console.log("---> Would build wall from " + origin + " to " + destination)
+    // throw new Error("Method not implemented.");
+  }
+
+  declareZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
     topLeft = this.enforceBounds(topLeft)
     bottomRight = this.enforceBounds(bottomRight)
-    const color = new Color(pick(60, 90, 120), pick(60, 90, 120), pick(60, 90, 120), 0.2)
-    if (topLeft[0] < bottomRight[0] && topLeft[1] < bottomRight[1]) {
+    const color = new Color(pick(60, 90, 120), pick(60, 90, 120), pick(60, 90, 120), 0.5)
+    if (topLeft[0] <= bottomRight[0] && topLeft[1] <= bottomRight[1]) {
       console.log("---> Creating zone from " + topLeft + " to " + bottomRight)
       this.zones.push({
         topLeft, bottomRight, color
@@ -177,7 +180,11 @@ export class Game {
 
   deleteZoneAt(location: WorldPosition): void {
     this.zones = this.zones.filter(zone =>
-      !areaContains(zone.topLeft, zone.bottomRight, location)
+      !areaContains(
+        pos(zone.topLeft[0], zone.topLeft[1]),
+        pos(zone.bottomRight[0], zone.bottomRight[1]),
+        location
+      )
     )
   }
 
@@ -211,8 +218,8 @@ export class Game {
   findUnfilledZonePositions(): WorldPosition[] {
     const positions: WorldPosition[] = []
     for (const zone of this.zones) {
-      for (let y = zone.topLeft[1]; y < zone.bottomRight[1]; y++) {
-        for (let x = zone.topLeft[0]; x < zone.bottomRight[0]; x++) {
+      for (let y = zone.topLeft[1]; y <= zone.bottomRight[1]; y++) {
+        for (let x = zone.topLeft[0]; x <= zone.bottomRight[0]; x++) {
           if (this.world.rawMaterialCount.at(pos(x,y)) < STACK_MAX) {
             // return false
             positions.push(pos(x,y))
@@ -231,9 +238,9 @@ export class Game {
   private enforceBounds(position: WorldPosition): WorldPosition {
     let [x, y] = position
     if (x < 0) { x = 0; }
-    if (x > this.world.width) { x = this.world.width }
+    if (x >= this.world.width) { x = this.world.width-1 }
     if (y < 0) { y = 0; }
-    if (y > this.world.height) { y = this.world.height }
+    if (y >= this.world.height) { y = this.world.height-1 }
     return pos(x,y)
   }
 
@@ -259,5 +266,4 @@ export class Game {
     })
     return map
   }
-
 }

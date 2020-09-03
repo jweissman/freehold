@@ -35,3 +35,10 @@ export type JobDetail = {
   travelDestination: WorldPosition,
   jobSubtype?: JobSubtype
 }
+
+export type Language = {
+  name: string,
+  // prefixes: string[],
+  stems: string[],
+  suffixes: string[],
+}

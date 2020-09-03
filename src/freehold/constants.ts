@@ -1,3 +1,5 @@
+import { Dimensions, Language } from "./types"
+
 export const CELL_SIZE = 16
 
 export const LAND_IMAGES  = [0,1,2,3]
@@ -26,9 +28,35 @@ export const STACK_MAX = 50
 
 export const TREE_CUT_DURATION = 50
 
-export const INITIAL_PAWN_COUNT = 15
+export const INITIAL_PAWN_COUNT = 5
+export const WORLD_DIMS = [20,25] as Dimensions
 
 /////////////////////////////
+
+export const DWARVEN_LANGUAGE: Language = {
+  name: 'Dwarvish',
+  // prefixes: ['Ar',],
+  stems: [
+    'Azagh',
+    'Bal', 'Bif', 'Bof', 'Bomb', 'Born',
+    'D', 'Dor', 'Dur','Dwal',
+    'Fr', 'Far', 'Fund', 'Frer', 'Fl', 'Fil',
+    'Giml', 'Gam', 'Gr', 'Gl',
+    'Ib',
+    'Lon',
+    'M',
+    'Na',
+    'O',
+    'Kil', 'Kh',
+    'Telch', 'Thor', 'Thr', 'Th'
+  ],
+  suffixes: ['in', 'is', 'i', 'un', 'im', 'or', 'erin', 'ar', 'ain'],
+}
+
+// export const ELVEN_LANGUAGE: Language = {
+//   name: 'Elvish',
+//   stems
+// }
 
 export const NAME_INITIAL_SYLLABLES = [
   "Adrah", "Amand", "Arath", "Argel", "Atanat", "Arvel", "Arag", "Adel", "Alat", "Alcar", "Aldar", "Alg", "Ameth",
@@ -38,16 +66,25 @@ export const NAME_INITIAL_SYLLABLES = [
   "Da", "Di", "Dais", "Dur", "Deneth", "Dor", "Dud",
   "Earen", "Ecthel", "Egalm", "Eldac", "Edrah", "Earw", "Elgant", "Elan", "Elat", "Erend",
   "Fastr", "Far", "Filib", "Fean",
-  "Isengr", "Isumbr",
   "Glo", "Gild", "Gelm", "Gald", "Glorfind", "Gothm", "Griff", "Grim", "Grimb", "Grithn", "Gr",
-  "H", "Ham", "Hur", "Hug", "Halfr", "Hald", "Hard", "Holm",
-  "T", "Thor", "Tur", "Tarond", "Thar", "Turg", 
-  "L", "Lil",
-  "Mabl", "Mor", "Mir", 
-  "Primr",
-  "S", "Snag",
-  "R", "Rum",
-  "Valand", "Voronw",
+  "H", "Ham", "Hur", "Hug", "Halfr", "Hald", "Hard", "Holm", "Hild", "Hir", "Herib", "Hirg", "Hirl", "Hobs", "Holf",
+  "I", "Irim", "Isengr", "Isumbr", "Isilm", "Ivorw", "Iv",
+  "Jag", "Jessam",
+  "Kham", "Kh", "Kil",
+  "L", "Lil", "Lag", "Lal", "Landrov", "Larg", "Laur", "Lavend", "Lenw", "Le", "Lorg", "Loth", "Luth",
+  "Mad", "Maedhr", "Magl", "Mal", "Maht", "Mair", "Malan", "Malv", "Marmad", "Mel", "Minas",
+    "Mabl", "Mor", "Mir", 
+  "Nah", "Nal", "Narv", "Nar",
+  "Orgul", "Or", "Oroph", "Oss", 
+  "Palant", "Palland", "Pans", "Pelend", "Pengol", "Peregr", "Primr",
+  "R", "Rum", "Regin", "Ros", "Row", "Ruf",
+  "S", "Sad", "Saer", "Sakalth", "Snag", "Saur", "Sur", "Soront",
+  "T", "Thor", "Tur", "Tarond", "Thar", "Turg",  "Tant", "Tulk", "Turamb",
+  "Uff", "Ugl", "Ufth", "Ulr", "Ulw",
+  "Valand", "Voronw", "Van", "Vanimeld",
+  "Wilib", "Wilcom",
+  "Yav",
+  "Zam", "Zir", "Zimrah", "Zimrath"
   // "Beo", "Gron", "Sam", "Tim",
   // "Gim", "Glo", "El", "Fi", "Fast",
   // "Fea", "Fara", "Bara", "Boro", "Hur",
@@ -56,11 +93,11 @@ export const NAME_INITIAL_SYLLABLES = [
 ]
 
 export const NAME_FINAL_SYLLABLES = [
-  "ad", "am", "as", "ast", "ard", "an", "anth", "ar", "arn", "acil", "adoc", "akh",
+  "ad", "am", "as", "ast", "ard", "an", "anth", "ar", "arn", "acil", "adoc", "akh", "ald", "and", "al", "ach", "arth",
   "e", "eg", "ed", "en", "ert",
   "i", "im", "in", "ir", "il", "ich", "ion", "iel", "ian", "ie", "ida", "ian", "ine", "imbor", "indor", "ily",
-  "o", "om", "on", "or", "orn", "oth", "ob", "og", "ose", "olas", "orm",
-  "ur", "ung", "und", "ulas",
+  "o", "om", "on", "or", "orn", "oth", "ob", "og", "ose", "olas", "orm", "odh",
+  "ur", "ung", "und", "ulas", "uin", "us",
   "y", "yst",
   //"n", "li", "well", "wise", "sy", "kin",
   //"son", "nor", "ich", "wulf", "in", "im",
