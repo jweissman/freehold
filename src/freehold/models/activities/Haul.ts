@@ -16,7 +16,9 @@ export class Haul implements IActivity {
   constructor(private game: Game) {}
 
   get outstandingItemLocations(): WorldPosition[] {
-    return this.game.rawMaterialLocations('wood').filter(location =>
+    const timber = this.game.rawMaterialLocations('wood')
+    // console.log("---> Outstanding wood is at ", timber)
+    return timber.filter(location =>
       !this.game.isLocationWithinAnyZone(location)
     ).filter(location => !this.assignedItemLocations.has(location))
   }
@@ -76,9 +78,9 @@ export class Haul implements IActivity {
       this.assignedItemLocations.delete(activityTarget)
     } else if (token.pawn.jobSubtype === 'haul-store') {
       const { activityTarget } = token.pawn
-      const kind = this.game.rawMaterialKindAtLocation(activityTarget) === 'nothing'
-        ? token.pawn.inventory[0]
-        : this.game.rawMaterialKindAtLocation(activityTarget)
+      const kind = this.game.rawMaterialKindAtLocation(activityTarget) //=== 'nothing'
+        ? this.game.rawMaterialKindAtLocation(activityTarget)
+        : token.pawn.inventory[0]
       const amountLocationCanAccept = STACK_MAX - this.game.rawMaterialCountAtLocation(activityTarget)
       let amountToStore = token.pawn.inventory.filter(k => kind === k).length
       if (amountToStore > amountLocationCanAccept) {

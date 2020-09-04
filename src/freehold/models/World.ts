@@ -1,10 +1,10 @@
 import { Cartogram } from "../models/Cartogram";
-import { Pawn, Dimensions, Terrain, Vegetation, WorldPosition, Sigil, Material, Activity } from "../types";
+import { Pawn, Dimensions, Vegetation, WorldPosition, Sigil, Material, Activity, Structure } from "../types";
 import { Grid } from "./Grid";
 import { Navigator } from "./Navigator";
 import { SimpleGrid } from "./SimpleGrid";
 import { pick } from "../util/pick";
-import { INITIAL_PAWN_COUNT, NAME_INITIAL_SYLLABLES, NAME_FINAL_SYLLABLES, DWARVEN_LANGUAGE } from "../constants";
+import { INITIAL_PAWN_COUNT, DWARVEN_LANGUAGE } from "../constants";
 import { shuffle } from "../util/shuffle";
 
 export class World {
@@ -23,11 +23,7 @@ export class World {
     this.pawns = []
     const language = DWARVEN_LANGUAGE
     for (let i = 0; i < initialPawnCount; i++) {
-      // const pawnNames = [
       const pawnName = pick(...language.stems) + pick(...language.suffixes)
-      //   pick(...language.stems) + pick(...language.suffixes),
-      //   pick(...language.stems) + pick(...language.suffixes),
-      // ].sort((a,b) => a.length >= b.length ? 1 : -1)
       this.pawns.push( 
         this.makePawn(pawnName, pawnPositions[i])
       )
@@ -37,11 +33,13 @@ export class World {
   get width(): number { return this.dimensions[0] }
   get height(): number { return this.dimensions[1] }
 
-  get terrain(): Grid<Terrain> { return this.map.terrain }
+  // get terrain(): Grid<Terrain> { return this.map.terrain }
   get vegetation(): Grid<Vegetation> { return this.map.vegetation }
   get sigils(): Grid<Sigil> { return this.map.sigils }
   get rawMaterial(): Grid<Material> { return this.map.rawMaterial } 
   get rawMaterialCount(): SimpleGrid<number> { return this.map.rawMaterialCount } 
+  get plannedStructure(): Grid<Structure> { return this.map.plannedStructure }
+  get plannedStructureMaterial(): Grid<Material> { return this.map.plannedStructureMaterial }
 
   makePawn = (name: string, pos: WorldPosition): Pawn => {
     return {

@@ -19,13 +19,33 @@ export class Grid<T> {
 
   at(location: WorldPosition): T {
     const [x, y] = location;
-    return this.dereference(this.cells[y][x]);
+    this.cells[y] = this.cells[y] || [];
+    if (this.cells[y][x] !== undefined) {
+      return this.dereference(this.cells[y][x]);
+    }
   }
 
   set(location: WorldPosition, value: T): void {
+    // console.log("[Grid.set] At location: " + location + ", value: " + value)
     const [x,y] = location;
     this.cells[y] = this.cells[y] || [];
     this.cells[y][x] = this.reference(value);
+  }
+
+  unset(location: WorldPosition): void {
+    const [x,y] = location;
+    this.cells[y] = this.cells[y] || [];
+    this.cells[y][x] = undefined; //this.reference(value);
+  }
+
+  labelledNeighborsAt(location: WorldPosition): { north: T, south: T, east: T, west: T } {
+    const [x,y] = location;
+    return {
+      east: this.at(pos(x+1,y)),
+      west: this.at(pos(x-1,y)),
+      north: this.at(pos(x,y-1)),
+      south: this.at(pos(x,y+1)),
+    }
   }
 
   forEachPositionXY(fn: (x: number, y: number) => void): void {

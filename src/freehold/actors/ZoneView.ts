@@ -17,6 +17,7 @@ export class ZoneView extends Actor {
       this.gridAlignedRect(ctx, x0, y0, x1, y1, zone.color)
 
       ctx.fillStyle = '#fff'
+      // ctx.
       for (let x=x0; x<=x1; x++) {
         for (let y=y0; y<=y1; y++) {
           const count = this.game.rawMaterialCountAtLocation(pos(x,y))

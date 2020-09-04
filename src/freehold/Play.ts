@@ -1,13 +1,28 @@
-import { Scene, Vector, Actor, Color, Input, Label, Traits } from "excalibur";
+import { Scene, Vector, Actor, Color, Input, Label, ScreenElement } from "excalibur";
 import { Game } from "./models/Game";
 import { World } from "./models/World";
-import { Dimensions, WorldPosition } from "./types";
+import { WorldPosition } from "./types";
 import { CELL_SIZE, WORLD_DIMS } from "./constants";
 import { FreeholdEngine } from "../FreeholdEngine";
 import { pos } from "./models/WorldPosition";
 import { Drag } from "./models/Drag";
 import { SingleCellBox } from "./actors/SingleCellBox";
 import { ZoneView } from "./actors/ZoneView";
+
+class Hud extends ScreenElement {
+  title: Label = new Label("Freehold v0.0.1", 20, 20)
+  help: Label = new Label("actions: (c)ut timber / create (z)one / (d)elete zone / (b)uild wall", 20, 30)
+  currentAction: Label = new Label("...", 20, 40)
+  onInitialize() {
+    this.title.color = Color.White
+    this.title.bold = true
+    this.add(this.title)
+    this.currentAction.color = Color.White
+    this.add(this.currentAction)
+    this.help.color = Color.White
+    this.add(this.help)
+  }
+}
 
 type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone' | 'inspect'
 export class Play extends Scene {
@@ -18,7 +33,7 @@ export class Play extends Scene {
   dragEnvelope: Actor
   currentAction: Action = 'cut'
 
-  label: Label
+  hud: Hud;
   regionView: ZoneView
 
   lastMouseButton: Input.PointerButton
@@ -28,42 +43,34 @@ export class Play extends Scene {
 
   onInitialize(engine: FreeholdEngine): void {
     // this.back
-    console.log("Play.onInitialize")
+    console.log("[Play.onInitialize] Hello world!")
 
-    const world = new World(WORLD_DIMS) //[60,40] as Dimensions);
+    const world = new World(WORLD_DIMS)
     this.game = new Game(world)
     this.game.setup()
 
     // this.add(this.game.terrain)
     this.add(this.game.vegetation)
     this.add(this.game.rawMaterials)
+    this.add(this.game.plannedStructures)
     this.add(this.game.sigils)
-
-    this.label = new Label("...", 20, 20)
-    this.label.color = Color.White
-    // this.label.
-        // this.label.traits = this.label.traits.filter(trait => !(trait instanceof Traits.OffscreenCulling))
-
-    this.add(this.label)
-    this.setAction('cut')
 
     this.regionView = new ZoneView(this.game, this.camera)
     this.add(this.regionView)
 
+    this.hud = new Hud()
+    this.add(this.hud)
+    this.setAction('cut')
+
     this.camera.pos =
       new Vector(world.pawns[0].pos[0] * CELL_SIZE, world.pawns[0].pos[1] * CELL_SIZE);
+    this.camera.zoom(2)
 
     const mouse = engine.input.pointers.primary
     mouse.on('move', (e) => {
       this.updateCursorPosition(e.pos)
       if (this.lastMouseButton === Input.PointerButton.Middle) {
-        // pan camera
         if (this.panning) {
-          console.log("would pan...")
-          // const panVec = this.panOrigin.sub(mouse.lastWorldPos)
-          // this.camera.vel = panVec //(panVec.negate())
-          // this.panOrigin.subEqual(mouse.lastWorldPos)
-          // this.panOrigin = panVec.add(mouse.lastWorldPos) //this.camera.pos.add(panVec)
           this.camera.pos.addEqual(
                     this.panOrigin.sub( mouse.lastWorldPos)  //e.pos)
                 )
@@ -71,18 +78,14 @@ export class Play extends Scene {
           this.camera.vel = new Vector(0,0)
         }
       } else {
-        // possible handle drag
         const enforceLines = this.currentAction === 'build'
         this.handleLeftDrag(mouse, enforceLines)
-      }//.Right) {}
-      // this.handleDrag(mouse)
+      }
     })
-    mouse.on('up', (e) => {
+    mouse.on('up', () => {
       if (this.lastMouseButton == Input.PointerButton.Left) {
         const enforceLines = this.currentAction === 'build'
-        // this.handleDrag(mouse, enforceLines)
         const { isFinished } = this.handleLeftDrag(mouse, enforceLines)
-        console.log("---> Drag finished?", isFinished)
         if(isFinished) { return this.applyCurrentActionToDragArea() }
       } else if (this.lastMouseButton === Input.PointerButton.Middle) {
         this.panning = false
@@ -91,28 +94,25 @@ export class Play extends Scene {
     mouse.on('down', (e) => {
       this.lastMouseButton = e.button
       if (e.button == Input.PointerButton.Left) {
-        console.log("---> Mouse down (left-click) at " + this.cursorWorldPos)
-
-        // if (!mouse.isDragStart) {
-        // if (this.currentAction === 'cut' && !mouse.isDragStart) {
-          // this.game.markTree(this.cursorWorldPos)
-        // } else if (this.currentAction === 'create-zone') {
-          // this.game.declareZone(this.cursorWorldPos, this.cursorWorldPos)
-        // } else 
         if (this.currentAction === 'delete-zone') {
           this.game.deleteZoneAt(this.cursorWorldPos)
-          //   // }
-        } //else {
-        // handle drag begin?
+        }
         const enforceLines = this.currentAction === 'build'
         this.handleLeftDrag(mouse, enforceLines)
-        // }
       } else if (e.button == Input.PointerButton.Middle) {
-        console.log("---> would start pan at...")
         this.panOrigin = mouse.lastWorldPos
         this.panning = true
       }
     })
+
+    mouse.on('wheel', (e) => {
+      if (e.deltaY > 0) {
+        this.camera.zoom(Math.max(this.camera.getZoom() - 0.2, 1))
+      } else if (e.deltaY < 0) {
+        this.camera.zoom(Math.min(this.camera.getZoom() + 0.2, 4))
+      }
+    })
+
     this.cursor = new SingleCellBox()
     this.add(this.cursor)
 
@@ -123,7 +123,7 @@ export class Play extends Scene {
   }
 
   setAction(action: Action): void {
-    this.label.text = "action: " + action
+    this.hud.currentAction.text = "current action is: " + action
     this.currentAction = action
   }
 
@@ -158,22 +158,8 @@ export class Play extends Scene {
   }
 
   applyCurrentActionToDragArea(): void {
-    console.log("---> Apply current action to drag area...")
-    // if (!this.drag.origin) { return } // hmm
-    //const mouse = engine.input.pointers.primary
-    //// if (mouse.)
-    //// draggable actions...
-    //// if (mouse.)
-    //if (this.currentAction === 'cut' || this.currentAction === 'create-zone' || this.currentAction === 'build') {
-    //  const enforceLines = this.currentAction === 'build'
-    //  const { isFinished } = this.handleDrag(mouse, enforceLines)
-    //  if (isFinished) {
-       // console.log("==== DRAG COMPLETE ====")
        const [originX, originY] = this.drag.minima
-     //  console.log("---> Drag region: begins at " + originX + "," + originY)
       const [destX, destY] = this.drag.maxima
-      console.log("Current action is " + this.currentAction)
-      console.log("Drag area is from " + originX + "," + originY + " to " + destX + ", " + destY)
        if (this.currentAction === 'cut') {
          console.log("---> Cut timber from " + originX + "," + originY + " to " + destX + ", " + destY)
          for (let x = originX; x <= destX; x++) {

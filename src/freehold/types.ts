@@ -23,12 +23,12 @@ export type Pawn = {
 } 
 
 export type Terrain  = 'land' | 'water'
-export type Vegetation = 'nothing' | 'grass' | 'tree' | 'flower'
-export type Sigil = 'nothing' | 'axe'
+export type Vegetation = 'grass' | 'tree' | 'flower'
+export type Sigil = 'axe'
 
-export type Material = 'nothing' | 'wood' | 'stone' | 'iron'
+export type Material = 'wood' | 'stone' | 'iron'
 // export type Thing    = 'nothing' | 'bed' | 'chair' | 'table' | 'door'
-// export type StructureKind = 'nothing' | 'wall'
+export type Structure = 'wall'
 // export type Structure = { kind: StructureKind, material: Material }
 
 type JobSubtype = 'haul-gather' | 'haul-store'

@@ -1,4 +1,4 @@
-import { Terrain, WorldPosition, Dimensions, Vegetation, Sigil, Material } from "../types";
+import { WorldPosition, Dimensions, Vegetation, Sigil, Material, Structure } from "../types";
 import { Grid } from "./Grid";
 import { pos, byDistanceFrom } from "./WorldPosition";
 import { pick } from "../util/pick";
@@ -8,26 +8,37 @@ import { TREE_COVER_RATIO } from "../constants";
 
 // type Matter = { kind: Material, amount: number }
 export class Cartogram {
-  terrain: Grid<Terrain>
+  // terrain: Grid<Terrain>
   vegetation: Grid<Vegetation>
 
   rawMaterial: Grid<Material>
   rawMaterialCount: SimpleGrid<number>
+
+  plannedStructure: Grid<Structure>
+  plannedStructureMaterial: Grid<Material>
   
   sigils: Grid<Sigil>
 
   constructor(private dims: Dimensions) {
-    this.terrain = new Grid<Terrain>(dims, ['land', 'water'])
-    this.vegetation = new Grid<Vegetation>(dims, ['nothing', 'grass', 'flower', 'tree'])
-    this.rawMaterial = new Grid<Material>(dims, [ 'nothing', 'wood' ])
-    this.rawMaterialCount = new SimpleGrid<number>(0)
-    this.sigils = new Grid<Sigil>(dims, ['nothing', 'axe'])
+    // this.terrain = new Grid<Terrain>(dims, ['land', 'water'])
+    this.vegetation = new Grid<Vegetation>(dims, ['grass', 'flower', 'tree'])
 
-    this.terrain.fill('land')
-    this.vegetation.fill('nothing')
+    this.rawMaterial = new Grid<Material>(dims, ['wood' ])
+    this.rawMaterialCount = new SimpleGrid<number>(0)
+
+    this.plannedStructure = new Grid<Structure>(dims, 
+      [ 'wall' ]
+    )
+
+    this.plannedStructureMaterial = new Grid<Material>(dims, ['wood'])
+
+    this.sigils = new Grid<Sigil>(dims, ['axe'])
+
+    // this.terrain.fill('land')
+    // this.vegetation.fill('nothing')
     this.vegetation.distributeRandomly('tree', TREE_COVER_RATIO)
-    this.rawMaterial.fill('nothing')
-    this.sigils.fill('nothing')
+    // this.rawMaterial.fill('nothing')
+    // this.sigils.fill('nothing')
   }
 
   get width(): number { return this.dims[0] }

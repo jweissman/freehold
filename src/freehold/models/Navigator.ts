@@ -2,6 +2,7 @@ import { WorldPosition } from "../types";
 import { posEq, distanceBetween, neighborsOfPositionPlusDiagonals } from "./WorldPosition";
 import { PositionSet } from "./PositionSet";
 import { SimpleGrid } from "./SimpleGrid";
+import { PATHFINDING_TIMEOUT } from "../constants";
 
 type NavigationResult = { path: WorldPosition[], found: boolean }
 
@@ -40,7 +41,7 @@ export class Navigator {
       const now = new Date().getTime()
       const elapsed = now - startedAt //- now
       // console.log("a* elapsed: " + elapsed)
-      if (elapsed > 50) { console.log("a-star hit timeout"); break }
+      if (elapsed > PATHFINDING_TIMEOUT) { console.log("a-star hit timeout"); break }
       
       const current: WorldPosition = fringe.array.sort(byFScore)[0]
       if (posEq(current, destination)) {
