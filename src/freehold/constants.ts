@@ -48,7 +48,7 @@ export const STACK_MAX = 90
 
 export const TREE_CUT_DURATION = 250
 
-export const INITIAL_PAWN_COUNT = 20
+export const INITIAL_PAWN_COUNT = 25
 export const WORLD_DIMS = [200,200] as Dimensions
 export const TREE_COVER_RATIO = 0.35
 

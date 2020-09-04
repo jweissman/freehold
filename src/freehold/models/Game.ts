@@ -173,27 +173,27 @@ export class Game {
     }
 
     for (const position of positions.merge(positions.fringe).array) {
-      // update this cell (and all neighbors...)
-      if (this.world.plannedStructure.at(position) === 'wall') {
-        const neighbors = this.world.plannedStructure.labelledNeighborsAt(position)
-        const mask = (neighbors.north === 'wall' ? 1 : 0) * 1 +
-                     (neighbors.east === 'wall' ? 1 : 0) * 2 +
-                     (neighbors.south === 'wall' ? 1 : 0) * 4 +
-                     (neighbors.west === 'wall' ? 1 : 0) * 8
-        
+      this.paveTile(position, this.world.plannedStructure, this.plannedStructures, 'wall', 'structure', WALL_MASK)
+    }
+  }
 
-        const [x, y] = position
-        const cell = this.plannedStructures.getCell(x, y)
-
-        const sprite = new TileSprite('structure', WALL_MASK[mask])
-        cell.clearSprites()
-        cell.pushSprite(sprite)
+  cancelPlans(origin: WorldPosition, destination: WorldPosition): void {
+    const positions: PositionSet = new PositionSet()
+    const topLeft = this.enforceBounds(origin)
+    const bottomRight = this.enforceBounds(destination)
+    for (let x = topLeft[0]; x <= bottomRight[0]; x++) {
+      for (let y = topLeft[1]; y <= bottomRight[1]; y++) {
+        console.log("---> Cancel building at " + x + ", " + y)
+        this.world.plannedStructure.unset(pos(x, y)) //, 'wall')
+        positions.add(pos(x, y))
       }
-      // }
     }
 
-    // throw new Error("Method not implemented.");
+    for (const position of positions.merge(positions.fringe).array) {
+      this.paveTile(position, this.world.plannedStructure, this.plannedStructures, 'wall', 'structure', WALL_MASK)
+    }
   }
+
 
   declareZone(topLeft: WorldPosition, bottomRight: WorldPosition): void {
     topLeft = this.enforceBounds(topLeft)
@@ -297,5 +297,25 @@ export class Game {
       }
     })
     return map
+  }
+
+  private paveTile<T>(position: WorldPosition, grid: Grid<T>, tilemap: TileMap, kind: T, paletteName: string, bitmask: { [key: number]: number }) {
+    const [x, y] = position
+    const cell = tilemap.getCell(x, y)
+    if (grid.at(position) === kind) {
+      const neighbors = grid.labelledNeighborsAt(position)
+      const mask = (neighbors.north === kind ? 1 : 0) * 1 +
+        (neighbors.east === kind ? 1 : 0) * 2 +
+        (neighbors.south === kind ? 1 : 0) * 4 +
+        (neighbors.west === kind ? 1 : 0) * 8
+
+
+
+      const sprite = new TileSprite(paletteName, bitmask[mask])
+      cell.clearSprites()
+      cell.pushSprite(sprite)
+    } else if (grid.at(position) === undefined) {
+      cell.clearSprites()
+    }
   }
 }

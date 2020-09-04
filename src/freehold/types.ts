@@ -4,7 +4,7 @@ export type Dimensions = [number, number] & { unit: 'area dimensions' }
 export type Direction = 'north' | 'south' | 'east' | 'west'
 
 export type WorldPosition = [number, number] & { unit: 'world position' }
-
+export type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone' | 'inspect' | 'cancel'
 
 export type Activity = 'logging' | 'hauling' | 'building'
 export type Item = Material // | Thing

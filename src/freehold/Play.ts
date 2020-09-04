@@ -1,7 +1,7 @@
 import { Scene, Vector, Actor, Color, Input, Label, ScreenElement } from "excalibur";
 import { Game } from "./models/Game";
 import { World } from "./models/World";
-import { WorldPosition } from "./types";
+import { WorldPosition, Action } from "./types";
 import { CELL_SIZE, WORLD_DIMS } from "./constants";
 import { FreeholdEngine } from "../FreeholdEngine";
 import { pos } from "./models/WorldPosition";
@@ -11,7 +11,7 @@ import { ZoneView } from "./actors/ZoneView";
 
 class Hud extends ScreenElement {
   title: Label = new Label("Freehold v0.0.1", 20, 20)
-  help: Label = new Label("actions: (c)ut timber / create (z)one / (d)elete zone / (b)uild wall", 20, 30)
+  help: Label = new Label("actions: cut (t)imber / create (z)one / (d)elete zone / (b)uild wall / (c)ancel building", 20, 30)
   currentAction: Label = new Label("...", 20, 40)
   onInitialize() {
     this.title.color = Color.White
@@ -24,7 +24,6 @@ class Hud extends ScreenElement {
   }
 }
 
-type Action = 'cut' | 'build' | 'create-zone' | 'delete-zone' | 'inspect'
 export class Play extends Scene {
   game: Game
   cursor: SingleCellBox
@@ -145,12 +144,14 @@ export class Play extends Scene {
     const keys = engine.input.keyboard
     if (keys.isHeld(Input.Keys.B)) {
       this.setAction('build')
-    } else if (keys.isHeld(Input.Keys.C)) {
+    } else if (keys.isHeld(Input.Keys.T)) {
       this.setAction('cut')
     } else if (keys.isHeld(Input.Keys.Z)) {
       this.setAction('create-zone')
     } else if (keys.isHeld(Input.Keys.D)) {
       this.setAction('delete-zone')
+    } else if (keys.isHeld(Input.Keys.C)) {
+      this.setAction('cancel')
     } else if (keys.isHeld(Input.Keys.Esc)) {
       this.setAction('inspect')
       this.drag = null
@@ -171,6 +172,8 @@ export class Play extends Scene {
          this.game.declareZone(pos(originX, originY), pos(destX, destY))
        } else if (this.currentAction === 'build') {
          this.game.planWall(pos(originX, originY), pos(destX, destY))
+       } else if (this.currentAction === 'cancel') {
+         this.game.cancelPlans(pos(originX, originY), pos(destX, destY))
        }
  
     //  }

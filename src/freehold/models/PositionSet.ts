@@ -42,7 +42,7 @@ export class PositionSet {
     for (let i = 0; i < this.arr.length; i++) {
       const pos = this.arr[i]
       for (const neighbor of PositionSet.neighborsOf(pos).array) {
-        if (!theFringe.has(neighbor)) {
+        if (!theFringe.has(neighbor) && !this.has(neighbor)) {
           theFringe.add(neighbor)
         }
       }
